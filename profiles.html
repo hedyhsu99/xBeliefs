@@ -49,13 +49,6 @@
     </style>
 </head>
 <body>
-
-    <div class="header">
-        <h1>Welcome to Patient X's Website</h1>
-        <p>STATUS: <span style="text-decoration: blink;">ACCESSING DATABASE...</span></p>
-    </div>
-
-    <div class="tab-label">[ 第一層：劇中角色檔案 / CHARACTER ARCHIVES ]</div>
     <div class="tab-group">
         <button class="tab-button active" onclick="showContent('mulder')">Fox Mulder</button>
         <button class="tab-button" onclick="showContent('scully')">Dana Scully</button>
@@ -64,27 +57,30 @@
         <button class="tab-button" onclick="showContent('krycek')">Alex Krycek</button>
     </div>
 
-    <div class="tab-label" style="margin-top: 20px;">[ 第二層：現實演員資料 / ACTOR PROFILES ]</div>
-    <div class="tab-group">
-        <button class="tab-button" onclick="showContent('david')">David Duchovny</button>
-        <button class="tab-button" onclick="showContent('gillian')">Gillian Anderson</button>
-        <button class="tab-button" onclick="showContent('mitch')">Mitch Pileggi</button>
-        <button class="tab-button" onclick="showContent('william')">William B. Davis</button>
-        <button class="tab-button" onclick="showContent('nicholas')">Nicholas Lea</button>
-    </div>
-
     <div class="content-display" id="main-display">
         
         <div id="mulder" class="archive-content active">
             <h2>Subject: Fox Mulder</h2>
             <p>> 只有兩個朋友、相信神祕生物、隨時準備開打。</p>
             <hr color="#00FF00">
-            <p>（這裡可以放入你原本 mulder.htm 的表格內容文字）</p>
+            <p>
+                福克斯‧穆德，英國牛津大學畢業，主修心理學，成績優異。曾參加聯邦調查局寬提科訓練學校。
+                多年前穆德在FBI服務時偶然發現了X檔案，X檔案中有著許多離奇或是無法解釋的事件，而一心追求事實的真相，並認為自
+                己十二歲的妹妹─珊曼莎當年離奇失蹤可能和外星人入侵地球有關，然而真相的背後可能還隱藏著許多政府不為民眾所知的
+                陰謀。最後穆德也無法掌控自己的命運，因為他也離奇的消失了。
+            </p>
         </div>
 
         <div id="scully" class="archive-content">
             <h2>Subject: Dana Scully</h2>
             <p>> 熱愛科學、個頭嬌小但強悍、美到無法言喻。</p>
+            <hr color="#00FF00">
+            <p>黛娜．史卡利美國馬里蘭大學畢業，主修物理，選修醫學系，聯邦調查局寬提科訓練學校結業。
+                原本應成為一名醫生的她，毅然決然的決定走入加入FBI這條路，最初上級是派史卡利與穆德合作並希望以她兼具醫學及科
+                學的背景可協助及監視穆德在X檔案部門的調查行為，但是在許多案件的調查期間，史卡利自已竟然也離奇的被綁架，雖平
+                安歸來，但是卻檢驗出自己得了無法醫治的癌症及不能生育的事實。由於自己親身之體驗，史卡利也漸漸的與穆德成為共同
+                進退的好夥伴，好朋友。最後因綁架後不能生育的她，竟奇蹟的懷孕了。
+            </p>
         </div>
 
         <div id="david" class="archive-content">
@@ -100,6 +96,14 @@
         <div id="william" class="archive-content"><h2>William B. Davis Profile</h2></div>
         <div id="nicholas" class="archive-content"><h2>Nicholas Lea Profile</h2></div>
 
+    </div>
+    
+    <div class="tab-group">
+        <button class="tab-button" onclick="showContent('david')">David Duchovny</button>
+        <button class="tab-button" onclick="showContent('gillian')">Gillian Anderson</button>
+        <button class="tab-button" onclick="showContent('mitch')">Mitch Pileggi</button>
+        <button class="tab-button" onclick="showContent('william')">William B. Davis</button>
+        <button class="tab-button" onclick="showContent('nicholas')">Nicholas Lea</button>
     </div>
 
     <script>
