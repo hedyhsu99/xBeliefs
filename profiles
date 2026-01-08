@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>The X-Files Archive | Project Patient X</title>
+    <style>
+        body {
+            background-color: black;
+            color: #00FF00;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .header { border-bottom: 2px solid #00FF00; padding-bottom: 10px; margin-bottom: 20px; text-align: center; }
+        
+        /* Tab 樣式 */
+        .tab-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-bottom: 10px; }
+        .tab-label { font-size: 0.8em; color: #888; width: 100%; text-align: center; margin-bottom: 5px; }
+        
+        .tab-button {
+            background-color: #314194; /* 你的原始藍色 */
+            color: white;
+            border: 1px solid #00FF00;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: 0.3s;
+        }
+        .tab-button:hover, .tab-button.active {
+            background-color: #00FF00;
+            color: black;
+            font-weight: bold;
+        }
+
+        /* 內容區塊 */
+        .content-display {
+            border: 1px solid #00FF00;
+            padding: 20px;
+            min-height: 300px;
+            background-color: rgba(0, 20, 0, 0.8);
+            margin-bottom: 30px;
+        }
+        .archive-content { display: none; }
+        .archive-content.active { display: block; animation: fadeIn 0.5s; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .footer { font-size: 0.7em; text-align: center; color: #008800; margin-top: 50px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Welcome to Patient X's Website</h1>
+        <p>STATUS: <span style="text-decoration: blink;">ACCESSING DATABASE...</span></p>
+    </div>
+
+    <div class="tab-label">[ 第一層：劇中角色檔案 / CHARACTER ARCHIVES ]</div>
+    <div class="tab-group">
+        <button class="tab-button active" onclick="showContent('mulder')">Fox Mulder</button>
+        <button class="tab-button" onclick="showContent('scully')">Dana Scully</button>
+        <button class="tab-button" onclick="showContent('skinner')">Walter Skinner</button>
+        <button class="tab-button" onclick="showContent('smoking')">Smoking Man</button>
+        <button class="tab-button" onclick="showContent('krycek')">Alex Krycek</button>
+    </div>
+
+    <div class="tab-label" style="margin-top: 20px;">[ 第二層：現實演員資料 / ACTOR PROFILES ]</div>
+    <div class="tab-group">
+        <button class="tab-button" onclick="showContent('david')">David Duchovny</button>
+        <button class="tab-button" onclick="showContent('gillian')">Gillian Anderson</button>
+        <button class="tab-button" onclick="showContent('mitch')">Mitch Pileggi</button>
+        <button class="tab-button" onclick="showContent('william')">William B. Davis</button>
+        <button class="tab-button" onclick="showContent('nicholas')">Nicholas Lea</button>
+    </div>
+
+    <div class="content-display" id="main-display">
+        
+        <div id="mulder" class="archive-content active">
+            <h2>Subject: Fox Mulder</h2>
+            <p>> 只有兩個朋友、相信神祕生物、隨時準備開打。</p>
+            <hr color="#00FF00">
+            <p>（這裡可以放入你原本 mulder.htm 的表格內容文字）</p>
+        </div>
+
+        <div id="scully" class="archive-content">
+            <h2>Subject: Dana Scully</h2>
+            <p>> 熱愛科學、個頭嬌小但強悍、美到無法言喻。</p>
+        </div>
+
+        <div id="david" class="archive-content">
+            <h2>Actor: David Duchovny</h2>
+            <p>（這裡放入 david.htm 的詳細演員介紹文字）</p>
+        </div>
+        
+        <div id="skinner" class="archive-content"><h2>Walter Skinner Archive</h2><p>正在載入資料...</p></div>
+        <div id="smoking" class="archive-content"><h2>Cigarette Smoking Man</h2><p>資料已遭政府銷毀。</p></div>
+        <div id="krycek" class="archive-content"><h2>Alex Krycek</h2><p>Surprise, bitch!</p></div>
+        <div id="gillian" class="archive-content"><h2>Gillian Anderson Profile</h2></div>
+        <div id="mitch" class="archive-content"><h2>Mitch Pileggi Profile</h2></div>
+        <div id="william" class="archive-content"><h2>William B. Davis Profile</h2></div>
+        <div id="nicholas" class="archive-content"><h2>Nicholas Lea Profile</h2></div>
+
+    </div>
+
+    <script>
+        function showContent(id) {
+            // 隱藏所有內容
+            const contents = document.querySelectorAll('.archive-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // 移除所有按鈕的 active 狀態
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // 顯示被點擊的內容
+            document.getElementById(id).classList.add('active');
+            
+            // 將點擊的按鈕設為 active (需尋找對應的按鈕)
+            event.currentTarget.classList.add('active');
+        }
+    </script>
+
+    <div class="footer">
+        <p>Visitor Log: <img src="https://count.getloli.com/get/@xpatientsx-xbeliefs?theme=3d-num" style="height:15px; vertical-align:middle;"> | 誰也不要相信 | 非營利站台</p>
+    </div>
+
+</body>
+</html>
