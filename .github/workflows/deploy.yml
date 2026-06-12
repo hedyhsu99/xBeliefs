@@ -1,11 +1,8 @@
-name: Deploy Vue Site to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches: [main]
-    paths:
-      - 'vue-site/**'
-      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 permissions:
@@ -33,16 +30,26 @@ jobs:
         run: npm ci
         working-directory: vue-site
 
-      - name: Copy images to public
+      - name: Copy images to vue-site public
         run: cp -r images vue-site/public/images
 
-      - name: Build
+      - name: Build Vue site
         run: npm run build
         working-directory: vue-site
 
+      # 合併原始站台 + Vue 站台到同一個輸出目錄
+      - name: Assemble _site
+        run: |
+          mkdir -p _site
+          # 原始 HTML 站台：複製根目錄的 HTML、CSS、圖片
+          cp index.html mulder.html scully.html profiles.html myCss.css _site/
+          cp -r images _site/images
+          # Vue 站台：放到 /vue/ 子目錄
+          cp -r vue-site/dist _site/vue
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: vue-site/dist
+          path: _site
 
   deploy:
     needs: build
