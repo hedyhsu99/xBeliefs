@@ -126,7 +126,7 @@ watch(() => route.params.id, id => {
     <footer class="footer">
       <span>Characters</span>
       <span class="sep">|</span>
-      <a href="https://github.com/patientsX/xBeliefs" target="_blank">Home</a>
+      <RouterLink to="/">Home</RouterLink>
       <span class="sep">|</span>
       <a href="mailto:hedy.hsu99@gmail.com">Email</a>
     </footer>

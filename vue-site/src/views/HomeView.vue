@@ -1,6 +1,24 @@
 <script setup>
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+
 const router = useRouter()
+
+onMounted(() => {
+  const script = document.createElement('script')
+  script.src = 'https://giscus.app/client.js'
+  script.setAttribute('data-repo', 'patientsX/xBeliefs')
+  script.setAttribute('data-repo-id', 'R_kgDOQ18_Ww')
+  script.setAttribute('data-category', 'General')
+  script.setAttribute('data-category-id', 'DIC_kwDOQ18_W84C0t5x')
+  script.setAttribute('data-mapping', 'pathname')
+  script.setAttribute('data-reactions-enabled', '1')
+  script.setAttribute('data-theme', 'dark_high_contrast')
+  script.setAttribute('data-lang', 'zh-TW')
+  script.crossOrigin = 'anonymous'
+  script.async = true
+  document.getElementById('giscus-container').appendChild(script)
+})
 </script>
 
 <template>
@@ -63,6 +81,12 @@ const router = useRouter()
 
     <!-- 掃描線效果 -->
     <div class="scanlines"></div>
+
+    <!-- 留言板 -->
+    <div class="giscus-wrap">
+      <p class="giscus-label">[ 通訊加密區 ]</p>
+      <div id="giscus-container"></div>
+    </div>
   </div>
 </template>
 
@@ -285,6 +309,24 @@ const router = useRouter()
   );
   pointer-events: none;
   z-index: 5;
+}
+
+/* === 留言板 === */
+.giscus-wrap {
+  position: relative;
+  z-index: 10;
+  max-width: 720px;
+  margin: 0 auto 48px;
+  padding: 0 16px;
+}
+
+.giscus-label {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  letter-spacing: 4px;
+  color: #445580;
+  margin-bottom: 12px;
+  text-align: left;
 }
 
 /* === RWD === */
