@@ -22,6 +22,7 @@ onMounted(() => {
 </script>
 
 <template>
+  <div class="page-wrap">
   <div class="home">
     <!-- 背景：霧氣粒子 -->
     <div class="fog fog1"></div>
@@ -81,16 +82,23 @@ onMounted(() => {
 
     <!-- 掃描線效果 -->
     <div class="scanlines"></div>
+  </div>
 
-    <!-- 留言板 -->
-    <div class="giscus-wrap">
-      <p class="giscus-label">[ 通訊加密區 ]</p>
-      <div id="giscus-container"></div>
-    </div>
+  <!-- 留言板：在 hero 下方獨立區塊 -->
+  <div class="giscus-wrap">
+    <p class="giscus-label">[ 通訊加密區 ]</p>
+    <div id="giscus-container"></div>
+  </div>
   </div>
 </template>
 
 <style scoped>
+.page-wrap {
+  background: #000;
+  display: flex;
+  flex-direction: column;
+}
+
 .home {
   position: relative;
   width: 100%;
