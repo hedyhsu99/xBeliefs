@@ -7,6 +7,10 @@ const demos = [
   { path: '/demos/2', num: '02', title: 'FULL SCREEN HERO',   desc: '全螢幕背景　左右切換　側邊縮圖導航　極簡現代', tag: '電影感' },
   { path: '/demos/3', num: '03', title: 'CARD FLIP',          desc: '卡片翻轉動畫　正面人名　背面資料+數值條　格狀排列', tag: '互動感' },
   { path: '/demos/4', num: '04', title: 'TERMINAL HACK',      desc: '黑底綠字終端機　打字機動畫　CRT 掃描線　解密逐行效果', tag: '最 X 檔案' },
+  { path: '/demos/5', num: '05', title: 'MATRIX RAIN',        desc: 'Canvas 數位雨特效　點擊角色名稱解鎖檔案　互動式畫面', tag: '動態感' },
+  { path: '/demos/6', num: '06', title: 'CONSPIRACY BOARD',   desc: '軟木板陰謀關係圖　SVG 紅線連結　點擊圖釘顯示詳情', tag: '偵探感' },
+  { path: '/demos/7', num: '07', title: 'SCROLL STORY',       desc: '全頁滾動敘事　IntersectionObserver 觸發入場動畫　四幕場景', tag: '沉浸感' },
+  { path: '/demos/8', num: '08', title: 'HOLOGRAPHIC CARDS',  desc: '滑鼠追蹤 3D 透視翻轉　全息光澤效果　FBI 識別卡風格', tag: '科技感' },
 ]
 </script>
 
