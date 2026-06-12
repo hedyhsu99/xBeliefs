@@ -113,7 +113,7 @@ watch(() => route.params.id, id => {
     </div>
 
     <!-- 下方導航：演員 -->
-    <nav class="tab-row bottom">
+    <nav class="tab-row bottom" style="padding: 0 6px 6px; margin-top: 0;">
       <button
         v-for="a in actors"
         :key="a.id"
@@ -143,33 +143,51 @@ watch(() => route.params.id, id => {
 /* === Tab 導航列 === */
 .tab-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-bottom: 4px;
+  flex-wrap: nowrap;
+  gap: 3px;
+  margin-bottom: 0;
+  background-color: #1a1a2e;
+  padding: 6px 6px 0;
 }
 
 .tab-btn {
-  background-color: #314194;
+  flex: 1;
+  background-color: #394994;
   color: #ffffff;
-  border: none;
-  padding: 6px 14px;
+  border: 2px solid #5566bb;
+  border-bottom: none;
+  padding: 7px 4px;
   font-size: 12px;
   font-family: Tahoma, Arial, sans-serif;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.15s;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-radius: 4px 4px 0 0;
+  min-width: 0;
 }
 
-.tab-btn:hover,
-.tab-btn.active {
+.tab-btn:hover {
   background-color: #5566cc;
   color: #ffffcc;
+}
+
+.tab-btn.active {
+  background-color: #ffffff;
+  color: #314194;
+  font-weight: bold;
+  border-color: #314194;
+  border-bottom: 2px solid #ffffff;
+  position: relative;
+  z-index: 1;
 }
 
 /* === 主卡片 === */
 .card {
   background: #ffffff;
-  border: 4px solid #314194;
+  border: 3px solid #314194;
+  border-top: none;
   margin-bottom: 4px;
 }
 
@@ -252,7 +270,21 @@ watch(() => route.params.id, id => {
 
 /* === 底部導航 === */
 .bottom {
-  margin-top: 4px;
+  background-color: #1a1a2e;
+  border-top: 3px solid #314194;
+}
+
+.bottom .tab-btn {
+  border-top: none;
+  border-bottom: 2px solid #5566bb;
+  border-radius: 0 0 4px 4px;
+}
+
+.bottom .tab-btn.active {
+  background-color: #ffffff;
+  color: #314194;
+  border-bottom: 2px solid #314194;
+  border-top: 2px solid #ffffff;
 }
 
 /* === 頁腳 === */
