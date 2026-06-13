@@ -4,7 +4,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Text } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Text, StyleSheet } from 'react-native';
 import { useStore } from './src/store/useStore';
 import { PortfolioScreen } from './src/screens/PortfolioScreen';
 import { TradesScreen } from './src/screens/TradesScreen';
@@ -37,6 +38,7 @@ export default function App() {
   }, []);
 
   return (
+    <GestureHandlerRootView style={styles.root}>
     <SafeAreaProvider>
       <NavigationContainer>
         <StatusBar style="auto" />
@@ -66,5 +68,10 @@ export default function App() {
         </Tab.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+});
