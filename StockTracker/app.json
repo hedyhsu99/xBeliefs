@@ -1,7 +1,13 @@
 {
   "expo": {
     "name": "StockTracker",
-    "slug": "StockTracker",
+    "slug": "stocktacer",
+    "owner": "hedy.hsu99",
+    "extra": {
+      "eas": {
+        "projectId": "c584a9ce-54b2-4633-98d5-1b4d647db7c2"
+      }
+    },
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
