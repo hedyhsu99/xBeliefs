@@ -16,10 +16,8 @@ jobs:
     name: 雲端建置 Android APK
     runs-on: ubuntu-latest
     steps:
-      - name: 取得程式碼（開發分支）
+      - name: 取得程式碼
         uses: actions/checkout@v4
-        with:
-          ref: claude/new-app-project-avhtac
 
       - name: 設定 Node.js
         uses: actions/setup-node@v4
