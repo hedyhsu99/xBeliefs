@@ -164,8 +164,6 @@ watch(() => route.params.id, id => {
   margin-bottom: 0;
   background-color: #394994;
   padding: 6px 6px 0;
-  position: relative;
-  z-index: 1;
 }
 
 .tab-btn {
@@ -191,24 +189,17 @@ watch(() => route.params.id, id => {
 }
 
 .tab-btn.active {
-  background-color: #ffffff;
-  color: #314194;
+  background-color: #314194;
+  color: #ffffcc;
   font-weight: bold;
-  border: 2px solid #314194;
-  border-bottom: none;
-  position: relative;
-  z-index: 2;
-  margin-bottom: -2px;
-  padding-bottom: 9px;
 }
 
 /* === 主卡片 === */
 .card {
   background: #ffffff;
-  border: 2px solid #314194;
+  border: 3px solid #314194;
+  border-top: none;
   margin-bottom: 4px;
-  position: relative;
-  z-index: 0;
 }
 
 .card-inner {
@@ -297,11 +288,9 @@ watch(() => route.params.id, id => {
 /* === 底部導航 === */
 .bottom {
   background-color: #394994;
-  border-top: 2px solid #314194;
+  border-top: 3px solid #314194;
   padding: 0 6px 6px;
-  margin-top: -2px;
-  position: relative;
-  z-index: 1;
+  margin-top: 0;
 }
 
 .bottom .tab-btn {
@@ -310,12 +299,9 @@ watch(() => route.params.id, id => {
 }
 
 .bottom .tab-btn.active {
-  background-color: #ffffff;
-  color: #314194;
-  border: 2px solid #314194;
-  border-top: none;
-  margin-top: -2px;
-  padding-top: 9px;
+  background-color: #314194;
+  color: #ffffcc;
+  font-weight: bold;
 }
 
 /* === 頁腳 === */
