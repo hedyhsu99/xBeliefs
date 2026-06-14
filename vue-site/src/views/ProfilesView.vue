@@ -160,18 +160,17 @@ watch(() => route.params.id, id => {
 .tab-row {
   display: flex;
   flex-wrap: nowrap;
-  gap: 2px;
+  gap: 5px;
   margin-bottom: 0;
   background-color: #394994;
-  padding: 6px 0 0;
+  padding: 6px 6px 0;
 }
 
 .tab-btn {
   flex: 1;
   background-color: #314194;
   color: #ffffff;
-  border: 2px solid #ffffff;
-  border-bottom: none;
+  border: none;
   padding: 7px 4px;
   font-size: 12px;
   font-family: Tahoma, Arial, sans-serif;
@@ -190,8 +189,8 @@ watch(() => route.params.id, id => {
 }
 
 .tab-btn.active {
-  background-color: #ffffff;
-  color: #314194;
+  background-color: #314194;
+  color: #ffffcc;
   font-weight: bold;
 }
 
@@ -289,19 +288,18 @@ watch(() => route.params.id, id => {
 .bottom {
   background-color: #394994;
   border-top: 3px solid #314194;
-  padding: 0 0 6px;
+  padding: 0 6px 6px;
   margin-top: 0;
 }
 
 .bottom .tab-btn {
-  border: 2px solid #ffffff;
-  border-top: none;
+  border: none;
   border-radius: 0 0 10px 10px;
 }
 
 .bottom .tab-btn.active {
-  background-color: #ffffff;
-  color: #314194;
+  background-color: #314194;
+  color: #ffffcc;
   font-weight: bold;
 }
 
