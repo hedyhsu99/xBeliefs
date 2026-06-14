@@ -160,10 +160,10 @@ watch(() => route.params.id, id => {
 .tab-row {
   display: flex;
   flex-wrap: nowrap;
-  gap: 4px;
+  gap: 2px;
   margin-bottom: 0;
   background-color: #ffffff;
-  padding: 6px 6px 0;
+  padding: 6px 0 0;
 }
 
 .tab-btn {
@@ -218,7 +218,6 @@ watch(() => route.params.id, id => {
   align-items: center;
   justify-content: center;
   padding: 12px;
-  border-right: 3px solid #314194;
 }
 
 .agent-photo {
@@ -289,7 +288,7 @@ watch(() => route.params.id, id => {
 .bottom {
   background-color: #ffffff;
   border-top: 3px solid #314194;
-  padding: 0 6px 6px;
+  padding: 0 0 6px;
   margin-top: 0;
 }
 
