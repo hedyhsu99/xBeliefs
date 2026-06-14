@@ -170,7 +170,8 @@ watch(() => route.params.id, id => {
   flex: 1;
   background-color: #314194;
   color: #ffffff;
-  border: none;
+  border: 2px solid #ffffff;
+  border-bottom: none;
   padding: 7px 4px;
   font-size: 12px;
   font-family: Tahoma, Arial, sans-serif;
@@ -293,7 +294,8 @@ watch(() => route.params.id, id => {
 }
 
 .bottom .tab-btn {
-  border: none;
+  border: 2px solid #ffffff;
+  border-top: none;
   border-radius: 0 0 10px 10px;
 }
 
