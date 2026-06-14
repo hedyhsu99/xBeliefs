@@ -160,9 +160,9 @@ watch(() => route.params.id, id => {
 .tab-row {
   display: flex;
   flex-wrap: nowrap;
-  gap: 5px;
+  gap: 4px;
   margin-bottom: 0;
-  background-color: #394994;
+  background-color: #ffffff;
   padding: 6px 6px 0;
 }
 
@@ -189,8 +189,8 @@ watch(() => route.params.id, id => {
 }
 
 .tab-btn.active {
-  background-color: #ffffff;
-  color: #314194;
+  background-color: #394994;
+  color: #ffffff;
   font-weight: bold;
 }
 
@@ -286,7 +286,7 @@ watch(() => route.params.id, id => {
 
 /* === 底部導航 === */
 .bottom {
-  background-color: #394994;
+  background-color: #ffffff;
   border-top: 3px solid #314194;
   padding: 0 6px 6px;
   margin-top: 0;
@@ -298,8 +298,8 @@ watch(() => route.params.id, id => {
 }
 
 .bottom .tab-btn.active {
-  background-color: #ffffff;
-  color: #314194;
+  background-color: #394994;
+  color: #ffffff;
   font-weight: bold;
 }
 
