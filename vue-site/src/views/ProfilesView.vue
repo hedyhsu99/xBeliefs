@@ -114,7 +114,7 @@ watch(() => route.params.id, id => {
     </div>
 
     <!-- 下方導航：演員 -->
-    <nav class="tab-row bottom" style="padding: 0 6px 6px; margin-top: 0;">
+    <nav class="tab-row bottom">
       <button
         v-for="a in actors"
         :key="a.id"
@@ -160,9 +160,9 @@ watch(() => route.params.id, id => {
 .tab-row {
   display: flex;
   flex-wrap: nowrap;
-  gap: 3px;
+  gap: 5px;
   margin-bottom: 0;
-  background-color: #1a1a2e;
+  background-color: #394994;
   padding: 6px 6px 0;
 }
 
@@ -180,7 +180,7 @@ watch(() => route.params.id, id => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border-radius: 4px 4px 0 0;
+  border-radius: 10px 10px 0 0;
   min-width: 0;
 }
 
@@ -194,7 +194,7 @@ watch(() => route.params.id, id => {
   color: #314194;
   font-weight: bold;
   border-color: #314194;
-  border-bottom: 2px solid #ffffff;
+  border-bottom: 3px solid #ffffff;
   position: relative;
   z-index: 1;
 }
@@ -258,7 +258,11 @@ watch(() => route.params.id, id => {
 .info-table td {
   padding: 3px 12px 3px 0;
   vertical-align: top;
-  color: #111;
+  color: #cc6600;
+}
+
+.info-table td:first-child {
+  color: #314194;
 }
 
 .info-table .label {
@@ -288,21 +292,23 @@ watch(() => route.params.id, id => {
 
 /* === 底部導航 === */
 .bottom {
-  background-color: #1a1a2e;
+  background-color: #394994;
   border-top: 3px solid #314194;
+  padding: 0 6px 6px;
+  margin-top: 0;
 }
 
 .bottom .tab-btn {
   border-top: none;
   border-bottom: 2px solid #5566bb;
-  border-radius: 0 0 4px 4px;
+  border-radius: 0 0 10px 10px;
 }
 
 .bottom .tab-btn.active {
   background-color: #ffffff;
   color: #314194;
   border-bottom: 2px solid #314194;
-  border-top: 2px solid #ffffff;
+  border-top: 3px solid #ffffff;
 }
 
 /* === 頁腳 === */
