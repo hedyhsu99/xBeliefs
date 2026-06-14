@@ -142,18 +142,18 @@ watch(() => route.params.id, id => {
 }
 
 .page {
-  max-width: 900px;
+  max-width: 760px;
   margin: 0 auto;
   padding: 12px 0 24px;
 }
 
 @media (min-width: 1024px) {
-  .page { max-width: 1000px; }
-  .photo-col { width: 240px; }
-  .agent-photo { width: 180px; }
-  .info-col { padding: 24px 36px; }
-  .info-table { font-size: 14px; }
-  .bio { font-size: 14px; }
+  .page { max-width: 760px; }
+  .photo-col { width: 220px; }
+  .agent-photo { width: 160px; }
+  .info-col { padding: 20px 28px; }
+  .info-table { font-size: 13px; }
+  .bio { font-size: 13px; }
 }
 
 /* === Tab 導航列 === */
@@ -162,7 +162,7 @@ watch(() => route.params.id, id => {
   flex-wrap: nowrap;
   gap: 4px;
   margin-bottom: 0;
-  background-color: #ffffff;
+  background-color: #394994;
   padding: 6px 6px 0;
 }
 
@@ -198,8 +198,7 @@ watch(() => route.params.id, id => {
 .card {
   background: #ffffff;
   border: 3px solid #314194;
-  border-top: none;
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 
 .card-inner {
@@ -263,7 +262,7 @@ watch(() => route.params.id, id => {
   font-weight: bold;
   white-space: nowrap;
   color: #314194;
-  min-width: 110px;
+  padding-right: 16px;
 }
 
 .actor-link {
@@ -286,7 +285,7 @@ watch(() => route.params.id, id => {
 
 /* === 底部導航 === */
 .bottom {
-  background-color: #ffffff;
+  background-color: #394994;
   border-top: 3px solid #314194;
   padding: 0 6px 6px;
   margin-top: 0;
