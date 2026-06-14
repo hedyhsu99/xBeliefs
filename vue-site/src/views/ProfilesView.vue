@@ -162,7 +162,7 @@ watch(() => route.params.id, id => {
   flex-wrap: nowrap;
   gap: 2px;
   margin-bottom: 0;
-  background-color: #ffffff;
+  background-color: #394994;
   padding: 6px 0 0;
 }
 
@@ -287,7 +287,7 @@ watch(() => route.params.id, id => {
 
 /* === 底部導航 === */
 .bottom {
-  background-color: #ffffff;
+  background-color: #394994;
   border-top: 3px solid #314194;
   padding: 0 0 6px;
   margin-top: 0;
