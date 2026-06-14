@@ -189,8 +189,8 @@ watch(() => route.params.id, id => {
 }
 
 .tab-btn.active {
-  background-color: #314194;
-  color: #ffffcc;
+  background-color: #ffffff;
+  color: #314194;
   font-weight: bold;
 }
 
@@ -252,7 +252,7 @@ watch(() => route.params.id, id => {
 .info-table td {
   padding: 3px 12px 3px 0;
   vertical-align: top;
-  color: #cc6600;
+  color: #222222;
 }
 
 .info-table td:first-child {
@@ -298,8 +298,8 @@ watch(() => route.params.id, id => {
 }
 
 .bottom .tab-btn.active {
-  background-color: #314194;
-  color: #ffffcc;
+  background-color: #ffffff;
+  color: #314194;
   font-weight: bold;
 }
 
