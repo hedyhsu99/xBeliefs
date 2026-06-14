@@ -168,10 +168,9 @@ watch(() => route.params.id, id => {
 
 .tab-btn {
   flex: 1;
-  background-color: #394994;
+  background-color: #314194;
   color: #ffffff;
-  border: 2px solid #394994;
-  border-bottom: none;
+  border: none;
   padding: 7px 4px;
   font-size: 12px;
   font-family: Tahoma, Arial, sans-serif;
@@ -193,7 +192,7 @@ watch(() => route.params.id, id => {
   background-color: #ffffff;
   color: #314194;
   font-weight: bold;
-  border-color: #394994;
+  border: none;
   border-bottom: 3px solid #ffffff;
   position: relative;
   z-index: 1;
@@ -299,15 +298,14 @@ watch(() => route.params.id, id => {
 }
 
 .bottom .tab-btn {
-  border-top: none;
-  border-bottom: 2px solid #394994;
+  border: none;
   border-radius: 0 0 10px 10px;
 }
 
 .bottom .tab-btn.active {
   background-color: #ffffff;
   color: #314194;
-  border-bottom: 2px solid #394994;
+  border: none;
   border-top: 3px solid #ffffff;
 }
 
