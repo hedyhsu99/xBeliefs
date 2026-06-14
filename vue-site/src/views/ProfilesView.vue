@@ -34,6 +34,7 @@ watch(() => route.params.id, id => {
 </script>
 
 <template>
+  <div class="page-bg">
   <div class="page">
 
     <!-- 上方導航：角色 -->
@@ -50,7 +51,7 @@ watch(() => route.params.id, id => {
     <div class="card">
       <div class="card-inner">
         <!-- 左側：FBI 證件照 -->
-        <div class="photo-col">
+        <div class="photo-col" :style="`background-image: url('${BASE}images/archives.jpg')`">
           <img
             v-if="current.photo"
             :src="`${BASE}${current.photo}`"
@@ -131,9 +132,15 @@ watch(() => route.params.id, id => {
       <a href="mailto:hedy.hsu99@gmail.com">Email</a>
     </footer>
   </div>
+  </div>
 </template>
 
 <style scoped>
+.page-bg {
+  background: #ffffff;
+  min-height: 100vh;
+}
+
 .page {
   max-width: 900px;
   margin: 0 auto;
@@ -209,7 +216,9 @@ watch(() => route.params.id, id => {
 .photo-col {
   width: 200px;
   min-width: 160px;
-  background: #dde0ee;
+  background-color: #dde0ee;
+  background-repeat: repeat;
+  background-size: auto;
   display: flex;
   align-items: center;
   justify-content: center;
