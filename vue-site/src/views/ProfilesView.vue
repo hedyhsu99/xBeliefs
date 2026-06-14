@@ -190,8 +190,8 @@ watch(() => route.params.id, id => {
 }
 
 .tab-btn.active {
-  background-color: #314194;
-  color: #ffffcc;
+  background-color: #ffffff;
+  color: #314194;
   font-weight: bold;
 }
 
@@ -300,8 +300,8 @@ watch(() => route.params.id, id => {
 }
 
 .bottom .tab-btn.active {
-  background-color: #314194;
-  color: #ffffcc;
+  background-color: #ffffff;
+  color: #314194;
   font-weight: bold;
 }
 
