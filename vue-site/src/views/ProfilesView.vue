@@ -65,27 +65,27 @@ watch(() => route.params.id, id => {
         <div class="info-col" :style="current.bg ? `background-image: url('${BASE}${current.bg}'); background-size: cover; background-position: center;` : ''">
           <table class="info-table">
             <tbody>
-              <tr v-if="mode === 'character'">
-                <td class="label">Name</td>
-                <td>{{ current.name }}</td>
-              </tr>
-              <tr v-if="mode === 'actor'">
-                <td class="label">Name</td>
-                <td>{{ current.name }}</td>
-              </tr>
               <tr>
+                <td class="label">Name</td>
+                <td>{{ current.name }}</td>
+              </tr>
+              <tr v-if="current.birthday">
                 <td class="label">Birthday</td>
                 <td>{{ current.birthday }}</td>
               </tr>
-              <tr v-if="mode === 'character'">
-                <td class="label">Marriage</td>
+              <tr v-if="current.jobPosition">
+                <td class="label">Job Position</td>
+                <td>{{ current.jobPosition }}</td>
+              </tr>
+              <tr v-if="current.marriage">
+                <td class="label">Marital status</td>
                 <td>{{ current.marriage }}</td>
               </tr>
-              <tr v-if="mode === 'character'">
+              <tr v-if="current.tall">
                 <td class="label">Tall</td>
                 <td>{{ current.tall }}</td>
               </tr>
-              <tr v-if="mode === 'character'">
+              <tr v-if="current.hairColor">
                 <td class="label">Hair color</td>
                 <td>{{ current.hairColor }}</td>
               </tr>
@@ -98,7 +98,7 @@ watch(() => route.params.id, id => {
                 </td>
               </tr>
               <tr v-if="mode === 'actor'">
-                <td class="label">Role</td>
+                <td class="label">Playing</td>
                 <td>
                   <a href="#" @click.prevent="selectCharacter(current.roleId)" class="actor-link">
                     {{ current.role }}
