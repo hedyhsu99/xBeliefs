@@ -44,8 +44,11 @@ const demos = [
 .demos-index {
   min-height: 100vh;
   background: #05050f;
-  padding: 24px 16px;
+  padding: 24px 24px;
   font-family: 'Courier New', monospace;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .back-btn {
@@ -81,7 +84,7 @@ const demos = [
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 16px;
-  max-width: 900px;
+  max-width: 1120px;
 }
 
 .demo-card {

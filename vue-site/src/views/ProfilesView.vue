@@ -135,9 +135,18 @@ watch(() => route.params.id, id => {
 
 <style scoped>
 .page {
-  max-width: 760px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 12px 0 24px;
+}
+
+@media (min-width: 1024px) {
+  .page { max-width: 1000px; }
+  .photo-col { width: 240px; }
+  .agent-photo { width: 180px; }
+  .info-col { padding: 24px 36px; }
+  .info-table { font-size: 14px; }
+  .bio { font-size: 14px; }
 }
 
 /* === Tab 導航列 === */
