@@ -5,6 +5,7 @@ import {
   Platform, ActivityIndicator, RefreshControl,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // ── 型別 ──────────────────────────────────────────────
 type TradeSide = 'buy' | 'sell';
@@ -128,6 +129,15 @@ function PnL({ value, pct, size = 14 }: { value: number; pct?: number; size?: nu
 type Tab = 'portfolio' | 'trades' | 'dividends' | 'analytics' | 'quote';
 
 export default function App() {
+  return (
+    <SafeAreaProvider>
+      <AppInner />
+    </SafeAreaProvider>
+  );
+}
+
+function AppInner() {
+  const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<Tab>('portfolio');
   const [trades, setTrades] = useState<Trade[]>([]);
   const [dividends, setDividends] = useState<Dividend[]>([]);
@@ -179,7 +189,7 @@ export default function App() {
         {tab === 'analytics' && <AnalyticsTab positions={positions} holding={holding} dividends={dividends} totalCost={totalCost} totalMV={totalMV} totalUpnl={totalUpnl} totalRpnl={totalRpnl} totalDiv={totalDiv} trades={trades} />}
         {tab === 'quote' && <QuoteTab prices={prices} trades={trades} onRefresh={refreshPrices} loading={loading} />}
       </View>
-      <View style={s.tabBar}>
+      <View style={[s.tabBar, { paddingBottom: insets.bottom || 8 }]}>
         {TABS.map(t => (
           <TouchableOpacity key={t.key} style={s.tabBtn} onPress={() => setTab(t.key)}>
             <Text style={{ fontSize: 22 }}>{t.icon}</Text>
@@ -586,7 +596,7 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f0f4f8' },
   content: { flex: 1 },
   scroll: { flex: 1 },
-  tabBar: { flexDirection: 'row', backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#e2e8f0', paddingBottom: 8 },
+  tabBar: { flexDirection: 'row', backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#e2e8f0' },
   tabBtn: { flex: 1, alignItems: 'center', paddingTop: 8 },
   tabLabel: { fontSize: 11, color: '#94a3b8', marginTop: 2 },
   tabActive: { color: '#2563eb', fontWeight: '600' },
