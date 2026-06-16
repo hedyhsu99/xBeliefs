@@ -65,13 +65,36 @@ function calcPositions(trades: Trade[], prices: Record<string, number>): Positio
 }
 
 // ── 股價查詢 ──────────────────────────────────────────
-async function fetchPrice(symbol: string): Promise<number> {
+async function fetchTWSEPrice(symbol: string): Promise<number> {
   try {
-    const s = /^\d+$/.test(symbol) ? `${symbol}.TW` : symbol;
-    const r = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${s}?interval=1d&range=1d`);
+    const r = await fetch(`https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_${symbol}.tw&json=1&delay=0`, {
+      headers: { 'Accept': 'application/json' },
+    });
+    const d = await r.json();
+    const price = d?.msgArray?.[0]?.z ?? d?.msgArray?.[0]?.y;
+    return price && price !== '-' ? parseFloat(price) : 0;
+  } catch { return 0; }
+}
+
+async function fetchYahooPrice(symbol: string): Promise<number> {
+  try {
+    const r = await fetch(
+      `https://query2.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`,
+      { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' } }
+    );
     const d = await r.json();
     return d?.chart?.result?.[0]?.meta?.regularMarketPrice ?? 0;
   } catch { return 0; }
+}
+
+async function fetchPrice(symbol: string): Promise<number> {
+  const isTW = /^\d{4,}$/.test(symbol);
+  if (isTW) {
+    const p = await fetchTWSEPrice(symbol);
+    if (p > 0) return p;
+  }
+  const s = isTW ? `${symbol}.TW` : symbol;
+  return fetchYahooPrice(s);
 }
 
 // ── 顏色元件 ──────────────────────────────────────────
