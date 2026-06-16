@@ -240,6 +240,7 @@ function PortfolioTab({ holding, totalCost, totalMV, totalUpnl, totalRpnl, total
 // ── 交易記錄 ──────────────────────────────────────────
 function TradesTab({ trades, onSave }: { trades: Trade[]; onSave: (t: Trade[]) => void }) {
   const [modal, setModal] = useState(false);
+  const [importModal, setImportModal] = useState(false);
   const [editing, setEditing] = useState<Trade | null>(null);
   const sorted = [...trades].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -250,6 +251,11 @@ function TradesTab({ trades, onSave }: { trades: Trade[]; onSave: (t: Trade[]) =
 
   return (
     <View style={{ flex: 1 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 12, paddingBottom: 0 }}>
+        <TouchableOpacity style={s.importBtn} onPress={() => setImportModal(true)}>
+          <Text style={s.importBtnT}>📥 批次匯入</Text>
+        </TouchableOpacity>
+      </View>
       <FlatList data={sorted} keyExtractor={i => i.id} contentContainerStyle={{ padding: 16, paddingBottom: 80 }}
         ListEmptyComponent={<Empty text="尚無交易記錄，點右下角 + 新增" />}
         renderItem={({ item: t }) => (
@@ -276,7 +282,127 @@ function TradesTab({ trades, onSave }: { trades: Trade[]; onSave: (t: Trade[]) =
       </TouchableOpacity>
       <TradeForm visible={modal} trade={editing} onClose={() => setModal(false)}
         onSave={t => { onSave(editing ? trades.map(x => x.id === t.id ? t : x) : [...trades, t]); setModal(false); }} />
+      <ImportModal visible={importModal} onClose={() => setImportModal(false)}
+        onImport={newTrades => { onSave([...trades, ...newTrades]); setImportModal(false); }} />
     </View>
+  );
+}
+
+// ── CSV 匯入 ──────────────────────────────────────────
+function parseCSV(text: string): { trades: Trade[]; errors: string[] } {
+  const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean);
+  const trades: Trade[] = [];
+  const errors: string[] = [];
+  const isHeader = (l: string) => /代號|symbol|股票/i.test(l);
+  const dataLines = isHeader(lines[0]) ? lines.slice(1) : lines;
+
+  dataLines.forEach((line, i) => {
+    const cols = line.split(/[,\t，]/).map(c => c.trim().replace(/^["']|["']$/g, ''));
+    if (cols.length < 5) { errors.push(`第 ${i + 1} 行欄位不足`); return; }
+    const [symbol, name, sideRaw, qtyStr, priceStr, feeStr, dateStr] = cols;
+    const side: TradeSide = /^(sell|賣|s)$/i.test(sideRaw) ? 'sell' : 'buy';
+    const quantity = parseFloat(qtyStr);
+    const price = parseFloat(priceStr);
+    if (!symbol || isNaN(quantity) || isNaN(price)) { errors.push(`第 ${i + 1} 行資料有誤`); return; }
+    trades.push({
+      id: uid(), symbol: symbol.toUpperCase(), name: name || symbol.toUpperCase(),
+      side, quantity, price, fee: parseFloat(feeStr) || 30,
+      date: dateStr || new Date().toISOString().split('T')[0],
+    });
+  });
+  return { trades, errors };
+}
+
+function ImportModal({ visible, onClose, onImport }: { visible: boolean; onClose: () => void; onImport: (t: Trade[]) => void }) {
+  const [text, setText] = useState('');
+  const [preview, setPreview] = useState<Trade[]>([]);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [step, setStep] = useState<'input' | 'preview'>('input');
+
+  const reset = () => { setText(''); setPreview([]); setErrors([]); setStep('input'); };
+
+  const parse = () => {
+    if (!text.trim()) return Alert.alert('請先貼上資料');
+    const { trades, errors } = parseCSV(text);
+    setPreview(trades); setErrors(errors);
+    setStep('preview');
+  };
+
+  const confirm = () => {
+    if (preview.length === 0) return Alert.alert('沒有可匯入的資料');
+    onImport(preview); reset();
+  };
+
+  return (
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { onClose(); reset(); }}>
+      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#f0f4f8' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <View style={s.mHeader}>
+          <TouchableOpacity onPress={() => { onClose(); reset(); }}><Text style={s.cancel}>取消</Text></TouchableOpacity>
+          <Text style={s.mTitle}>批次匯入交易</Text>
+          {step === 'input'
+            ? <TouchableOpacity onPress={parse}><Text style={s.saveBtn}>解析</Text></TouchableOpacity>
+            : <TouchableOpacity onPress={confirm}><Text style={s.saveBtn}>確認匯入</Text></TouchableOpacity>}
+        </View>
+
+        {step === 'input' ? (
+          <ScrollView style={{ padding: 16 }} keyboardShouldPersistTaps="handled">
+            <View style={[s.card, { backgroundColor: '#eff6ff', marginBottom: 12 }]}>
+              <Text style={{ color: '#1e40af', fontWeight: '600', marginBottom: 6 }}>格式說明（每行一筆）：</Text>
+              <Text style={{ color: '#1e40af', fontSize: 12, fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' }}>
+                {'代號,名稱,買賣,數量,價格,手續費,日期\n2330,台積電,buy,10,2400,30,2026-06-15\n0050,台灣50,buy,100,200,30,2026-06-10'}
+              </Text>
+              <Text style={{ color: '#3b82f6', fontSize: 11, marginTop: 8 }}>
+                • 買賣填 buy 或 sell（或 買/賣）{'\n'}
+                • 手續費和日期可省略（預設 30 元、今日）{'\n'}
+                • 可直接從 Google 試算表複製貼上
+              </Text>
+            </View>
+            <Text style={s.fieldL}>貼上資料：</Text>
+            <TextInput
+              style={[s.input, { height: 200, textAlignVertical: 'top', fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace', fontSize: 13 }]}
+              multiline value={text} onChangeText={setText}
+              placeholder={'2330,台積電,buy,10,2400,30,2026-06-15\n0050,台灣50,buy,100,200,30,2026-06-10'}
+            />
+          </ScrollView>
+        ) : (
+          <ScrollView style={{ padding: 16 }}>
+            {errors.length > 0 && (
+              <View style={[s.card, { backgroundColor: '#fef2f2', marginBottom: 12 }]}>
+                <Text style={{ color: '#dc2626', fontWeight: '600', marginBottom: 4 }}>⚠️ {errors.length} 筆解析失敗</Text>
+                {errors.map((e, i) => <Text key={i} style={{ color: '#dc2626', fontSize: 12 }}>{e}</Text>)}
+              </View>
+            )}
+            {preview.length > 0 && (
+              <View style={[s.card, { backgroundColor: '#f0fdf4', marginBottom: 12 }]}>
+                <Text style={{ color: '#16a34a', fontWeight: '600' }}>✅ 成功解析 {preview.length} 筆，確認後匯入</Text>
+              </View>
+            )}
+            {preview.map((t, i) => (
+              <View key={i} style={s.card}>
+                <View style={s.row}>
+                  <View style={s.row}>
+                    <View style={[s.badge, t.side === 'buy' ? s.buyBadge : s.sellBadge]}>
+                      <Text style={s.badgeT}>{t.side === 'buy' ? '買' : '賣'}</Text>
+                    </View>
+                    <View style={{ marginLeft: 10 }}>
+                      <Text style={s.symbol}>{t.symbol}</Text>
+                      <Text style={s.sub}>{t.name} · {t.date}</Text>
+                    </View>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={s.val}>{t.quantity} 股</Text>
+                    <Text style={s.sub}>@{t.price}</Text>
+                  </View>
+                </View>
+              </View>
+            ))}
+            <TouchableOpacity style={[s.importBtn, { marginTop: 8 }]} onPress={() => setStep('input')}>
+              <Text style={s.importBtnT}>← 重新編輯</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        )}
+      </KeyboardAvoidingView>
+    </Modal>
   );
 }
 
@@ -637,4 +763,6 @@ const s = StyleSheet.create({
   freqBtn2: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#e2e8f0' },
   freqBtnT: { fontSize: 13, color: '#64748b', fontWeight: '500' },
   searchBtn: { backgroundColor: '#2563eb', borderRadius: 10, paddingHorizontal: 18, justifyContent: 'center', minWidth: 70, alignItems: 'center', paddingVertical: 10 },
+  importBtn: { backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, alignSelf: 'flex-end' },
+  importBtnT: { color: '#2563eb', fontWeight: '600', fontSize: 14 },
 });
