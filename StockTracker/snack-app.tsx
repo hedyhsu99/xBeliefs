@@ -65,36 +65,51 @@ function calcPositions(trades: Trade[], prices: Record<string, number>): Positio
 }
 
 // ── 股價查詢 ──────────────────────────────────────────
-async function fetchTWSEPrice(symbol: string): Promise<number> {
-  try {
-    const r = await fetch(`https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_${symbol}.tw&json=1&delay=0`, {
-      headers: { 'Accept': 'application/json' },
-    });
-    const d = await r.json();
-    const price = d?.msgArray?.[0]?.z ?? d?.msgArray?.[0]?.y;
-    return price && price !== '-' ? parseFloat(price) : 0;
-  } catch { return 0; }
-}
-
-async function fetchYahooPrice(symbol: string): Promise<number> {
-  try {
-    const r = await fetch(
-      `https://query2.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`,
-      { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' } }
-    );
-    const d = await r.json();
-    return d?.chart?.result?.[0]?.meta?.regularMarketPrice ?? 0;
-  } catch { return 0; }
-}
-
 async function fetchPrice(symbol: string): Promise<number> {
   const isTW = /^\d{4,}$/.test(symbol);
+  const yahooSymbol = isTW ? `${symbol}.TW` : symbol;
+
+  // 方法一：TWSE 即時 API（台股，盤中用 z，收盤後用 y）
   if (isTW) {
-    const p = await fetchTWSEPrice(symbol);
-    if (p > 0) return p;
+    try {
+      const r = await fetch(
+        `https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_${symbol}.tw&json=1&delay=0`,
+        { headers: { Accept: 'application/json', Referer: 'https://mis.twse.com.tw' } }
+      );
+      const d = await r.json();
+      const info = d?.msgArray?.[0];
+      if (info) {
+        const z = info.z; // 盤中即時價
+        const y = info.y; // 昨日收盤
+        if (z && z !== '-') return parseFloat(z);
+        if (y && y !== '-') return parseFloat(y);
+      }
+    } catch {}
   }
-  const s = isTW ? `${symbol}.TW` : symbol;
-  return fetchYahooPrice(s);
+
+  // 方法二：Yahoo Finance v8（台股加 .TW、美股直接用）
+  try {
+    const r = await fetch(
+      `https://query2.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=1d&range=5d`,
+      { headers: { 'User-Agent': 'Mozilla/5.0 (compatible)', Accept: 'application/json' } }
+    );
+    const d = await r.json();
+    const p = d?.chart?.result?.[0]?.meta?.regularMarketPrice;
+    if (p) return p;
+  } catch {}
+
+  // 方法三：Yahoo Finance v7 quote
+  try {
+    const r = await fetch(
+      `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${yahooSymbol}`,
+      { headers: { 'User-Agent': 'Mozilla/5.0 (compatible)', Accept: 'application/json' } }
+    );
+    const d = await r.json();
+    const p = d?.quoteResponse?.result?.[0]?.regularMarketPrice;
+    if (p) return p;
+  } catch {}
+
+  return 0;
 }
 
 // ── 顏色元件 ──────────────────────────────────────────
