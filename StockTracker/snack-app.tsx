@@ -289,24 +289,34 @@ function TradesTab({ trades, onSave }: { trades: Trade[]; onSave: (t: Trade[]) =
 }
 
 // ── CSV 匯入 ──────────────────────────────────────────
+async function fetchStockName(symbol: string): Promise<string> {
+  try {
+    const r = await fetch(
+      `https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_${symbol}.tw&json=1&delay=0`,
+      { headers: { Accept: 'application/json', Referer: 'https://mis.twse.com.tw' } }
+    );
+    const d = await r.json();
+    return d?.msgArray?.[0]?.n || symbol;
+  } catch { return symbol; }
+}
+
 function parseCSV(text: string): { trades: Trade[]; errors: string[] } {
   const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean);
   const trades: Trade[] = [];
   const errors: string[] = [];
-  const isHeader = (l: string) => /代號|symbol|股票/i.test(l);
+  const isHeader = (l: string) => /股號|代號|symbol/i.test(l);
   const dataLines = isHeader(lines[0]) ? lines.slice(1) : lines;
 
   dataLines.forEach((line, i) => {
     const cols = line.split(/[,\t，]/).map(c => c.trim().replace(/^["']|["']$/g, ''));
-    if (cols.length < 5) { errors.push(`第 ${i + 1} 行欄位不足`); return; }
-    const [symbol, name, sideRaw, qtyStr, priceStr, feeStr, dateStr] = cols;
-    const side: TradeSide = /^(sell|賣|s)$/i.test(sideRaw) ? 'sell' : 'buy';
+    if (cols.length < 4) { errors.push(`第 ${i + 1} 行欄位不足（至少需要：股號,日期,單價,數量）`); return; }
+    const [symbol, dateStr, priceStr, qtyStr, feeStr] = cols;
     const quantity = parseFloat(qtyStr);
     const price = parseFloat(priceStr);
     if (!symbol || isNaN(quantity) || isNaN(price)) { errors.push(`第 ${i + 1} 行資料有誤`); return; }
     trades.push({
-      id: uid(), symbol: symbol.toUpperCase(), name: name || symbol.toUpperCase(),
-      side, quantity, price, fee: parseFloat(feeStr) || 30,
+      id: uid(), symbol: symbol.toUpperCase(), name: symbol.toUpperCase(),
+      side: 'buy', quantity, price, fee: parseFloat(feeStr) || 30,
       date: dateStr || new Date().toISOString().split('T')[0],
     });
   });
@@ -318,13 +328,24 @@ function ImportModal({ visible, onClose, onImport }: { visible: boolean; onClose
   const [preview, setPreview] = useState<Trade[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [step, setStep] = useState<'input' | 'preview'>('input');
+  const [fetching, setFetching] = useState(false);
 
-  const reset = () => { setText(''); setPreview([]); setErrors([]); setStep('input'); };
+  const reset = () => { setText(''); setPreview([]); setErrors([]); setStep('input'); setFetching(false); };
 
-  const parse = () => {
+  const parse = async () => {
     if (!text.trim()) return Alert.alert('請先貼上資料');
     const { trades, errors } = parseCSV(text);
-    setPreview(trades); setErrors(errors);
+    setErrors(errors);
+    if (trades.length === 0) { setStep('preview'); setPreview([]); return; }
+
+    // 自動抓取股票名稱
+    setFetching(true);
+    const syms = [...new Set(trades.map(t => t.symbol))];
+    const nameMap: Record<string, string> = {};
+    await Promise.all(syms.map(async sym => { nameMap[sym] = await fetchStockName(sym); }));
+    const namedTrades = trades.map(t => ({ ...t, name: nameMap[t.symbol] || t.symbol }));
+    setPreview(namedTrades);
+    setFetching(false);
     setStep('preview');
   };
 
@@ -340,20 +361,22 @@ function ImportModal({ visible, onClose, onImport }: { visible: boolean; onClose
           <TouchableOpacity onPress={() => { onClose(); reset(); }}><Text style={s.cancel}>取消</Text></TouchableOpacity>
           <Text style={s.mTitle}>批次匯入交易</Text>
           {step === 'input'
-            ? <TouchableOpacity onPress={parse}><Text style={s.saveBtn}>解析</Text></TouchableOpacity>
+            ? <TouchableOpacity onPress={parse} disabled={fetching}>
+                {fetching ? <ActivityIndicator size="small" color="#2563eb" /> : <Text style={s.saveBtn}>解析</Text>}
+              </TouchableOpacity>
             : <TouchableOpacity onPress={confirm}><Text style={s.saveBtn}>確認匯入</Text></TouchableOpacity>}
         </View>
 
         {step === 'input' ? (
           <ScrollView style={{ padding: 16 }} keyboardShouldPersistTaps="handled">
             <View style={[s.card, { backgroundColor: '#eff6ff', marginBottom: 12 }]}>
-              <Text style={{ color: '#1e40af', fontWeight: '600', marginBottom: 6 }}>格式說明（每行一筆）：</Text>
-              <Text style={{ color: '#1e40af', fontSize: 12, fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' }}>
-                {'代號,名稱,買賣,數量,價格,手續費,日期\n2330,台積電,buy,10,2400,30,2026-06-15\n0050,台灣50,buy,100,200,30,2026-06-10'}
+              <Text style={{ color: '#1e40af', fontWeight: '600', marginBottom: 6 }}>格式（每行一筆，股票名稱自動帶入）：</Text>
+              <Text style={{ color: '#1e40af', fontSize: 13, fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' }}>
+                {'股號,日期,單價,數量,手續費\n2330,2026-06-15,2400,10,30\n0050,2026-06-10,200,100,30'}
               </Text>
               <Text style={{ color: '#3b82f6', fontSize: 11, marginTop: 8 }}>
-                • 買賣填 buy 或 sell（或 買/賣）{'\n'}
-                • 手續費和日期可省略（預設 30 元、今日）{'\n'}
+                • 手續費可省略（預設 30 元）{'\n'}
+                • 全部預設為「買入」{'\n'}
                 • 可直接從 Google 試算表複製貼上
               </Text>
             </View>
