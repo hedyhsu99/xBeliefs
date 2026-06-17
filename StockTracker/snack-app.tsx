@@ -346,7 +346,7 @@ function TradesTab({ th, trades, onSave }: { th: Theme; trades: Trade[]; onSave:
   const [draftTo, setDraftTo] = useState('');
   const [draftPreset, setDraftPreset] = useState('');
 
-  const toDateStr = (d: Date) => d.toISOString().split('T')[0];
+  const toDateStr = localDateStr;
   const DATE_PRESETS = [
     { label: '當日', from: () => { const t = toDateStr(new Date()); return { from: t, to: t }; } },
     { label: '前日', from: () => { const d = new Date(); d.setDate(d.getDate() - 1); const t = toDateStr(d); return { from: t, to: t }; } },
@@ -973,6 +973,13 @@ function Field({ th, label, value, onChange, placeholder, kb, flex, caps }: any)
     </View>
   );
 }
+const localDateStr = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
 function DatePickerField({ th, label, value, onChange, flex, placeholder }: { th: Theme; label: string; value: string; onChange: (v: string) => void; flex?: number; placeholder?: string }) {
   const [show, setShow] = useState(false);
   const parsed = value ? new Date(value + 'T00:00:00') : new Date();
@@ -992,7 +999,7 @@ function DatePickerField({ th, label, value, onChange, flex, placeholder }: { th
           display="default"
           onChange={(_: any, d?: Date) => {
             setShow(false);
-            if (d) onChange(d.toISOString().split('T')[0]);
+            if (d) onChange(localDateStr(d));
           }}
         />
       )}
