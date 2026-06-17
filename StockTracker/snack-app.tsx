@@ -242,7 +242,24 @@ function TradesTab({ trades, onSave }: { trades: Trade[]; onSave: (t: Trade[]) =
   const [modal, setModal] = useState(false);
   const [importModal, setImportModal] = useState(false);
   const [editing, setEditing] = useState<Trade | null>(null);
+  const [showFilter, setShowFilter] = useState(false);
+  const [fSymbol, setFSymbol] = useState('');
+  const [fFrom, setFFrom] = useState('');
+  const [fTo, setFTo] = useState('');
+
   const sorted = [...trades].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const filtered = sorted.filter(t => {
+    if (fSymbol && !t.symbol.includes(fSymbol.toUpperCase()) && !t.name.includes(fSymbol)) return false;
+    if (fFrom && t.date < fFrom) return false;
+    if (fTo && t.date > fTo) return false;
+    return true;
+  });
+
+  const isFiltering = !!(fSymbol || fFrom || fTo);
+  const buyTotal = filtered.filter(t => t.side === 'buy').reduce((s, t) => s + t.quantity * t.price, 0);
+  const sellTotal = filtered.filter(t => t.side === 'sell').reduce((s, t) => s + t.quantity * t.price, 0);
+  const clearFilter = () => { setFSymbol(''); setFFrom(''); setFTo(''); };
 
   const del = (t: Trade) => Alert.alert('刪除交易', `確定刪除 ${t.symbol}？`, [
     { text: '取消', style: 'cancel' },
@@ -251,13 +268,67 @@ function TradesTab({ trades, onSave }: { trades: Trade[]; onSave: (t: Trade[]) =
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 12, paddingBottom: 0 }}>
+      {/* 工具列 */}
+      <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 12, paddingBottom: 8, gap: 8 }}>
+        <TouchableOpacity style={[s.importBtn, showFilter && { backgroundColor: '#dbeafe', borderColor: '#3b82f6' }]} onPress={() => setShowFilter(v => !v)}>
+          <Text style={s.importBtnT}>🔎 查詢{isFiltering ? ' ●' : ''}</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={s.importBtn} onPress={() => setImportModal(true)}>
           <Text style={s.importBtnT}>📥 批次匯入</Text>
         </TouchableOpacity>
       </View>
-      <FlatList data={sorted} keyExtractor={i => i.id} contentContainerStyle={{ padding: 16, paddingBottom: 80 }}
-        ListEmptyComponent={<Empty text="尚無交易記錄，點右下角 + 新增" />}
+
+      {/* 篩選列 */}
+      {showFilter && (
+        <View style={{ backgroundColor: '#fff', marginHorizontal: 16, marginBottom: 8, borderRadius: 12, padding: 14, elevation: 2 }}>
+          <View style={s.fRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={s.fieldL}>股號 / 名稱</Text>
+              <TextInput style={s.input} value={fSymbol} onChangeText={setFSymbol} placeholder="2330 或 台積電" autoCapitalize="characters" />
+            </View>
+          </View>
+          <View style={s.fRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={s.fieldL}>起始日</Text>
+              <TextInput style={s.input} value={fFrom} onChangeText={setFFrom} placeholder="2026-01-01" />
+            </View>
+            <View style={{ width: 10 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={s.fieldL}>結束日</Text>
+              <TextInput style={s.input} value={fTo} onChangeText={setFTo} placeholder="2026-12-31" />
+            </View>
+          </View>
+          {isFiltering && (
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+              <Text style={s.sub}>共 {filtered.length} 筆</Text>
+              <TouchableOpacity onPress={clearFilter}>
+                <Text style={{ color: '#ef4444', fontSize: 13, fontWeight: '600' }}>清除篩選</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      )}
+
+      {/* 篩選小計 */}
+      {isFiltering && filtered.length > 0 && (
+        <View style={{ flexDirection: 'row', marginHorizontal: 16, marginBottom: 8, gap: 8 }}>
+          <View style={[s.card, { flex: 1, paddingVertical: 10 }]}>
+            <Text style={[s.sub, { textAlign: 'center' }]}>買入金額</Text>
+            <Text style={{ color: '#16a34a', fontWeight: '700', fontSize: 14, textAlign: 'center', marginTop: 2 }}>
+              {buyTotal > 0 ? fmt(buyTotal) : '---'}
+            </Text>
+          </View>
+          <View style={[s.card, { flex: 1, paddingVertical: 10 }]}>
+            <Text style={[s.sub, { textAlign: 'center' }]}>賣出金額</Text>
+            <Text style={{ color: '#dc2626', fontWeight: '700', fontSize: 14, textAlign: 'center', marginTop: 2 }}>
+              {sellTotal > 0 ? fmt(sellTotal) : '---'}
+            </Text>
+          </View>
+        </View>
+      )}
+
+      <FlatList data={filtered} keyExtractor={i => i.id} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 80 }}
+        ListEmptyComponent={<Empty text={isFiltering ? '查無符合的交易記錄' : '尚無交易記錄，點右下角 + 新增'} />}
         renderItem={({ item: t }) => (
           <TouchableOpacity style={s.card} onPress={() => { setEditing(t); setModal(true); }} onLongPress={() => del(t)}>
             <View style={s.row}>
