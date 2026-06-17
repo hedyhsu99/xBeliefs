@@ -431,7 +431,16 @@ function TradesTab({ th, trades, onSave }: { th: Theme; trades: Trade[]; onSave:
       <FlatList data={filtered} keyExtractor={i => i.id}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 80 }}
         ListHeaderComponent={listHeader}
-        ListEmptyComponent={<Empty text={isFiltering ? '查無符合的交易記錄' : '尚無交易記錄，點右下角 + 新增'} th={th} />}
+        ListEmptyComponent={
+          isFiltering
+            ? <View style={{ alignItems: 'center', paddingVertical: 50, gap: 14 }}>
+                <Text style={[s.sub, { color: th.sub }]}>查無符合的交易記錄</Text>
+                <TouchableOpacity style={[s.importBtn, { backgroundColor: th.card, borderColor: '#ef4444' }]} onPress={clearFilter}>
+                  <Text style={[s.importBtnT, { color: '#ef4444' }]}>清除篩選</Text>
+                </TouchableOpacity>
+              </View>
+            : <Empty text="尚無交易記錄，點右下角 + 新增" th={th} />
+        }
         renderItem={({ item: t }) => (
           <TouchableOpacity style={[s.card, { backgroundColor: th.card }]} onPress={() => { setEditing(t); setModal(true); }} onLongPress={() => del(t)}>
             <View style={s.row}>
