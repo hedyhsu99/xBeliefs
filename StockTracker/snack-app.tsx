@@ -188,7 +188,7 @@ function AppInner() {
   ];
 
   return (
-    <View style={s.root}>
+    <View style={[s.root, { paddingTop: insets.top }]}>
       <View style={s.content}>
         {tab === 'portfolio' && <PortfolioTab holding={holding} totalCost={totalCost} totalMV={totalMV} totalUpnl={totalUpnl} totalRpnl={totalRpnl} totalDiv={totalDiv} loading={loading} onRefresh={refreshPrices} holdingOrder={holdingOrder} onReorder={saveHoldingOrder} />}
         {tab === 'trades' && <TradesTab trades={trades} onSave={saveTrades} />}
@@ -318,10 +318,10 @@ function TradesTab({ trades, onSave }: { trades: Trade[]; onSave: (t: Trade[]) =
     { text: '刪除', style: 'destructive', onPress: () => onSave(trades.filter(x => x.id !== t.id)) },
   ]);
 
-  return (
-    <View style={{ flex: 1 }}>
+  const listHeader = (
+    <View>
       {/* 工具列 */}
-      <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 12, paddingBottom: 8, gap: 8 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingVertical: 10, paddingHorizontal: 16, gap: 8 }}>
         <TouchableOpacity style={[s.importBtn, showFilter && { backgroundColor: '#dbeafe', borderColor: '#3b82f6' }]} onPress={() => setShowFilter(v => !v)}>
           <Text style={s.importBtnT}>🔎 查詢{isFiltering ? ' ●' : ''}</Text>
         </TouchableOpacity>
@@ -378,8 +378,14 @@ function TradesTab({ trades, onSave }: { trades: Trade[]; onSave: (t: Trade[]) =
           </View>
         </View>
       )}
+    </View>
+  );
 
-      <FlatList data={filtered} keyExtractor={i => i.id} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 80 }}
+  return (
+    <View style={{ flex: 1 }}>
+      <FlatList data={filtered} keyExtractor={i => i.id}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 80 }}
+        ListHeaderComponent={listHeader}
         ListEmptyComponent={<Empty text={isFiltering ? '查無符合的交易記錄' : '尚無交易記錄，點右下角 + 新增'} />}
         renderItem={({ item: t }) => (
           <TouchableOpacity style={s.card} onPress={() => { setEditing(t); setModal(true); }} onLongPress={() => del(t)}>
