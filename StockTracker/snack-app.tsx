@@ -143,10 +143,17 @@ function AppInner() {
   const [dividends, setDividends] = useState<Dividend[]>([]);
   const [prices, setPrices] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
+  const [holdingOrder, setHoldingOrder] = useState<string[]>([]);
+
+  const saveHoldingOrder = (order: string[]) => {
+    setHoldingOrder(order);
+    AsyncStorage.setItem('holdingOrder', JSON.stringify(order));
+  };
 
   useEffect(() => {
     AsyncStorage.getItem('trades').then(v => v && setTrades(JSON.parse(v)));
     AsyncStorage.getItem('dividends').then(v => v && setDividends(JSON.parse(v)));
+    AsyncStorage.getItem('holdingOrder').then(v => v && setHoldingOrder(JSON.parse(v)));
   }, []);
 
   const saveTrades = (t: Trade[]) => { setTrades(t); AsyncStorage.setItem('trades', JSON.stringify(t)); };
@@ -183,7 +190,7 @@ function AppInner() {
   return (
     <View style={s.root}>
       <View style={s.content}>
-        {tab === 'portfolio' && <PortfolioTab holding={holding} totalCost={totalCost} totalMV={totalMV} totalUpnl={totalUpnl} totalRpnl={totalRpnl} totalDiv={totalDiv} loading={loading} onRefresh={refreshPrices} />}
+        {tab === 'portfolio' && <PortfolioTab holding={holding} totalCost={totalCost} totalMV={totalMV} totalUpnl={totalUpnl} totalRpnl={totalRpnl} totalDiv={totalDiv} loading={loading} onRefresh={refreshPrices} holdingOrder={holdingOrder} onReorder={saveHoldingOrder} />}
         {tab === 'trades' && <TradesTab trades={trades} onSave={saveTrades} />}
         {tab === 'dividends' && <DividendsTab dividends={dividends} onSave={saveDividends} />}
         {tab === 'analytics' && <AnalyticsTab positions={positions} holding={holding} dividends={dividends} totalCost={totalCost} totalMV={totalMV} totalUpnl={totalUpnl} totalRpnl={totalRpnl} totalDiv={totalDiv} trades={trades} />}
@@ -202,7 +209,26 @@ function AppInner() {
 }
 
 // ── 投資組合 ──────────────────────────────────────────
-function PortfolioTab({ holding, totalCost, totalMV, totalUpnl, totalRpnl, totalDiv, loading, onRefresh }: any) {
+function PortfolioTab({ holding, totalCost, totalMV, totalUpnl, totalRpnl, totalDiv, loading, onRefresh, holdingOrder, onReorder }: any) {
+  const [sortMode, setSortMode] = useState(false);
+
+  const ordered: Position[] = [...holding].sort((a, b) => {
+    const ai = holdingOrder.indexOf(a.symbol);
+    const bi = holdingOrder.indexOf(b.symbol);
+    if (ai === -1 && bi === -1) return 0;
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  });
+
+  const move = (idx: number, dir: -1 | 1) => {
+    const newList = [...ordered];
+    const target = idx + dir;
+    if (target < 0 || target >= newList.length) return;
+    [newList[idx], newList[target]] = [newList[target], newList[idx]];
+    onReorder(newList.map(p => p.symbol));
+  };
+
   return (
     <ScrollView style={s.scroll} refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} />}>
       <View style={s.summaryCard}>
@@ -215,22 +241,48 @@ function PortfolioTab({ holding, totalCost, totalMV, totalUpnl, totalRpnl, total
         <Row label="股利收入" value={<PnL value={totalDiv} size={15} />} />
         <Row label="總損益" value={<PnL value={totalUpnl + totalRpnl + totalDiv} size={15} />} />
       </View>
-      <Text style={s.sec}>持倉明細</Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 4 }}>
+        <Text style={s.sec}>持倉明細</Text>
+        {holding.length > 1 && (
+          <TouchableOpacity style={[s.importBtn, sortMode && { backgroundColor: '#fef9c3', borderColor: '#eab308' }]} onPress={() => setSortMode(v => !v)}>
+            <Text style={[s.importBtnT, sortMode && { color: '#a16207' }]}>{sortMode ? '✅ 完成排序' : '↕️ 排序'}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
       {holding.length === 0 && <Empty text="尚無持倉，請至「交易」頁面新增記錄" />}
-      {holding.map(p => (
-        <View key={p.symbol} style={s.card}>
+      {ordered.map((p, idx) => (
+        <View key={p.symbol} style={[s.card, sortMode && { borderWidth: 1, borderColor: '#e2e8f0' }]}>
           <View style={s.row}>
-            <View><Text style={s.symbol}>{p.symbol}</Text><Text style={s.sub}>{p.name}</Text></View>
-            <View style={{ alignItems: 'flex-end' }}>
-              {loading ? <ActivityIndicator size="small" /> : <Text style={s.price}>{p.currentPrice > 0 ? `$${p.currentPrice}` : '---'}</Text>}
-              <Text style={s.sub}>{p.quantity} 股</Text>
+            <View style={{ flex: 1 }}>
+              <View style={s.row}>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.symbol}>{p.symbol}</Text>
+                  <Text style={s.sub}>{p.name}</Text>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  {loading ? <ActivityIndicator size="small" /> : <Text style={s.price}>{p.currentPrice > 0 ? `$${p.currentPrice}` : '---'}</Text>}
+                  <Text style={s.sub}>{p.quantity} 股</Text>
+                </View>
+              </View>
             </View>
+            {sortMode && (
+              <View style={{ marginLeft: 12, gap: 4 }}>
+                <TouchableOpacity style={s.moveBtn} onPress={() => move(idx, -1)} disabled={idx === 0}>
+                  <Text style={[s.moveBtnT, idx === 0 && { color: '#cbd5e1' }]}>▲</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={s.moveBtn} onPress={() => move(idx, 1)} disabled={idx === ordered.length - 1}>
+                  <Text style={[s.moveBtnT, idx === ordered.length - 1 && { color: '#cbd5e1' }]}>▼</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
-          <View style={s.hr2} />
-          <Row label="市值" value={<Text style={s.val}>{fmt(p.marketValue)}</Text>} />
-          <Row label="均成本" value={<Text style={s.val}>{fmt(p.averageCost)}</Text>} />
-          <Row label="未實現損益" value={<PnL value={p.unrealizedPnL} pct={p.unrealizedPnLPercent} />} />
-          {p.realizedPnL !== 0 && <Row label="已實現損益" value={<PnL value={p.realizedPnL} />} />}
+          {!sortMode && <>
+            <View style={s.hr2} />
+            <Row label="市值" value={<Text style={s.val}>{fmt(p.marketValue)}</Text>} />
+            <Row label="均成本" value={<Text style={s.val}>{fmt(p.averageCost)}</Text>} />
+            <Row label="未實現損益" value={<PnL value={p.unrealizedPnL} pct={p.unrealizedPnLPercent} />} />
+            {p.realizedPnL !== 0 && <Row label="已實現損益" value={<PnL value={p.realizedPnL} />} />}
+          </>}
         </View>
       ))}
     </ScrollView>
@@ -859,4 +911,6 @@ const s = StyleSheet.create({
   searchBtn: { backgroundColor: '#2563eb', borderRadius: 10, paddingHorizontal: 18, justifyContent: 'center', minWidth: 70, alignItems: 'center', paddingVertical: 10 },
   importBtn: { backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, alignSelf: 'flex-end' },
   importBtnT: { color: '#2563eb', fontWeight: '600', fontSize: 14 },
+  moveBtn: { width: 32, height: 32, borderRadius: 8, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center' },
+  moveBtnT: { fontSize: 14, color: '#475569', fontWeight: '700' },
 });
