@@ -447,39 +447,37 @@ function TradesTab({ th, trades, onSave }: { th: Theme; trades: Trade[]; onSave:
           </TouchableOpacity>
         )} />
 
-      {/* FAB 展開選單遮罩 */}
+      {/* FAB 展開遮罩 */}
       {fabOpen && (
         <TouchableOpacity style={s.filterOverlay} activeOpacity={1} onPress={() => setFabOpen(false)} />
       )}
 
-      {/* FAB Speed Dial */}
-      <View style={s.fabGroup}>
-        {fabOpen && (
-          <>
-            <View style={s.fabItem}>
-              <Text style={[s.fabLabel, { backgroundColor: th.card, color: th.text }]}>新增交易</Text>
-              <TouchableOpacity style={[s.fabSmall, { backgroundColor: '#2563eb' }]} onPress={() => { setFabOpen(false); setEditing(null); setModal(true); }}>
-                <Text style={s.fabSmallT}>✏️</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={s.fabItem}>
-              <Text style={[s.fabLabel, { backgroundColor: th.card, color: th.text }]}>查詢{isFiltering ? ' ●' : ''}</Text>
-              <TouchableOpacity style={[s.fabSmall, { backgroundColor: '#0891b2' }]} onPress={() => { setFabOpen(false); openFilter(); }}>
-                <Text style={s.fabSmallT}>🔎</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={s.fabItem}>
-              <Text style={[s.fabLabel, { backgroundColor: th.card, color: th.text }]}>批次匯入</Text>
-              <TouchableOpacity style={[s.fabSmall, { backgroundColor: '#7c3aed' }]} onPress={() => { setFabOpen(false); setImportModal(true); }}>
-                <Text style={s.fabSmallT}>📥</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
-        <TouchableOpacity style={[s.fab, fabOpen && { backgroundColor: '#475569' }]} onPress={() => setFabOpen(v => !v)}>
-          <Text style={[s.fabT, { transform: [{ rotate: fabOpen ? '45deg' : '0deg' }] }]}>+</Text>
-        </TouchableOpacity>
-      </View>
+      {/* FAB Speed Dial - 各按鈕獨立絕對定位 */}
+      {fabOpen && (
+        <>
+          <View style={[s.fabItem, { position: 'absolute', right: 20, bottom: 218 }]}>
+            <Text style={[s.fabLabel, { backgroundColor: th.card, color: th.text }]}>新增交易</Text>
+            <TouchableOpacity style={[s.fabSmall, { backgroundColor: '#2563eb' }]} onPress={() => { setFabOpen(false); setEditing(null); setModal(true); }}>
+              <Text style={s.fabSmallT}>✏️</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={[s.fabItem, { position: 'absolute', right: 20, bottom: 150 }]}>
+            <Text style={[s.fabLabel, { backgroundColor: th.card, color: th.text }]}>查詢{isFiltering ? ' ●' : ''}</Text>
+            <TouchableOpacity style={[s.fabSmall, { backgroundColor: '#0891b2' }]} onPress={() => { setFabOpen(false); openFilter(); }}>
+              <Text style={s.fabSmallT}>🔎</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={[s.fabItem, { position: 'absolute', right: 20, bottom: 82 }]}>
+            <Text style={[s.fabLabel, { backgroundColor: th.card, color: th.text }]}>批次匯入</Text>
+            <TouchableOpacity style={[s.fabSmall, { backgroundColor: '#7c3aed' }]} onPress={() => { setFabOpen(false); setImportModal(true); }}>
+              <Text style={s.fabSmallT}>📥</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
+      <TouchableOpacity style={[s.fab, fabOpen && { backgroundColor: '#475569' }]} onPress={() => setFabOpen(v => !v)}>
+        <Text style={[s.fabT, { transform: [{ rotate: fabOpen ? '45deg' : '0deg' }] }]}>+</Text>
+      </TouchableOpacity>
 
       {/* 查詢條件浮動視窗 */}
       <Modal visible={filterModal} transparent animationType="fade" onRequestClose={cancelFilter}>
