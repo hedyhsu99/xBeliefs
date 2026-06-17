@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 // ── 主題定義 ──────────────────────────────────────────
 const lightTheme = {
@@ -378,15 +379,9 @@ function TradesTab({ th, trades, onSave }: { th: Theme; trades: Trade[]; onSave:
             </View>
           </View>
           <View style={s.fRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={[s.fieldL, { color: th.sub }]}>起始日</Text>
-              <TextInput style={[s.input, { backgroundColor: th.inputBg, borderColor: th.border, color: th.text }]} value={fFrom} onChangeText={setFFrom} placeholder="2026-01-01" placeholderTextColor={th.sub} />
-            </View>
+            <DatePickerField th={th} label="起始日" value={fFrom} onChange={setFFrom} placeholder="選擇起始日" />
             <View style={{ width: 10 }} />
-            <View style={{ flex: 1 }}>
-              <Text style={[s.fieldL, { color: th.sub }]}>結束日</Text>
-              <TextInput style={[s.input, { backgroundColor: th.inputBg, borderColor: th.border, color: th.text }]} value={fTo} onChangeText={setFTo} placeholder="2026-12-31" placeholderTextColor={th.sub} />
-            </View>
+            <DatePickerField th={th} label="結束日" value={fTo} onChange={setFTo} placeholder="選擇結束日" />
           </View>
           {isFiltering && (
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
@@ -646,7 +641,7 @@ function TradeForm({ th, visible, trade, onClose, onSave }: any) {
           <View style={s.fRow}>
             <Field th={th} label="手續費" value={fee} onChange={setFee} placeholder="30" kb="numeric" flex={1} />
             <View style={{ width: 10 }} />
-            <Field th={th} label="日期 *" value={date} onChange={setDate} placeholder="2025-01-01" flex={1} />
+            <DatePickerField th={th} label="日期 *" value={date} onChange={setDate} />
           </View>
           {qty && price && <View style={s.preview}><Text style={s.previewL}>交易金額</Text><Text style={s.previewV}>{(+qty * +price).toLocaleString()} 元</Text></View>}
         </ScrollView>
@@ -750,9 +745,9 @@ function DividendForm({ th, visible, dividend, onClose, onSave }: any) {
             <Field th={th} label="持有股數 *" value={qty} onChange={setQty} placeholder="1000" kb="numeric" flex={1} />
           </View>
           <View style={s.fRow}>
-            <Field th={th} label="除息日 *" value={exDate} onChange={setExDate} placeholder="2025-07-01" flex={1} />
+            <DatePickerField th={th} label="除息日 *" value={exDate} onChange={setExDate} />
             <View style={{ width: 10 }} />
-            <Field th={th} label="發放日" value={payDate} onChange={setPayDate} placeholder="2025-08-15" flex={1} />
+            <DatePickerField th={th} label="發放日" value={payDate} onChange={setPayDate} placeholder="選擇發放日" />
           </View>
           {total > 0 && <View style={[s.preview, { backgroundColor: '#f0fdf4' }]}><Text style={{ color: '#059669', fontSize: 13 }}>股利總金額</Text><Text style={[s.previewV, { color: '#065f46' }]}>{total.toLocaleString()} 元</Text></View>}
         </ScrollView>
@@ -901,6 +896,32 @@ function Field({ th, label, value, onChange, placeholder, kb, flex, caps }: any)
     <View style={{ flex, marginBottom: 14 }}>
       <Text style={[s.fieldL, { color: th.sub }]}>{label}</Text>
       <TextInput style={[s.input, { backgroundColor: th.inputBg, borderColor: th.border, color: th.text }]} value={value} onChangeText={onChange} placeholder={placeholder} placeholderTextColor={th.sub} keyboardType={kb} autoCapitalize={caps ? 'characters' : 'none'} />
+    </View>
+  );
+}
+function DatePickerField({ th, label, value, onChange, flex, placeholder }: { th: Theme; label: string; value: string; onChange: (v: string) => void; flex?: number; placeholder?: string }) {
+  const [show, setShow] = useState(false);
+  const parsed = value ? new Date(value + 'T00:00:00') : new Date();
+  return (
+    <View style={{ flex: flex ?? 1, marginBottom: 14 }}>
+      <Text style={[s.fieldL, { color: th.sub }]}>{label}</Text>
+      <TouchableOpacity
+        style={[s.input, { backgroundColor: th.inputBg, borderColor: th.border, justifyContent: 'center' }]}
+        onPress={() => setShow(true)}
+      >
+        <Text style={{ fontSize: 15, color: value ? th.text : th.sub }}>{value || placeholder || '選擇日期'}</Text>
+      </TouchableOpacity>
+      {show && (
+        <DateTimePicker
+          value={parsed}
+          mode="date"
+          display="default"
+          onChange={(_: any, d?: Date) => {
+            setShow(false);
+            if (d) onChange(d.toISOString().split('T')[0]);
+          }}
+        />
+      )}
     </View>
   );
 }
