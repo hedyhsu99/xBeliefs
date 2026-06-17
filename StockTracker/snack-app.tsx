@@ -337,6 +337,17 @@ function TradesTab({ th, trades, onSave }: { th: Theme; trades: Trade[]; onSave:
   const [fSymbol, setFSymbol] = useState('');
   const [fFrom, setFFrom] = useState('');
   const [fTo, setFTo] = useState('');
+  const [datePreset, setDatePreset] = useState<string>('');
+
+  const toDateStr = (d: Date) => d.toISOString().split('T')[0];
+  const DATE_PRESETS = [
+    { label: '當日', apply: () => { const t = toDateStr(new Date()); setFFrom(t); setFTo(t); } },
+    { label: '前日', apply: () => { const d = new Date(); d.setDate(d.getDate() - 1); const t = toDateStr(d); setFFrom(t); setFTo(t); } },
+    { label: '三天', apply: () => { const d = new Date(); d.setDate(d.getDate() - 2); setFFrom(toDateStr(d)); setFTo(toDateStr(new Date())); } },
+    { label: '一周', apply: () => { const d = new Date(); d.setDate(d.getDate() - 6); setFFrom(toDateStr(d)); setFTo(toDateStr(new Date())); } },
+    { label: '一個月', apply: () => { const d = new Date(); d.setMonth(d.getMonth() - 1); setFFrom(toDateStr(d)); setFTo(toDateStr(new Date())); } },
+    { label: '選擇區間', apply: () => { setFFrom(''); setFTo(''); } },
+  ];
 
   const sorted = [...trades].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -350,7 +361,7 @@ function TradesTab({ th, trades, onSave }: { th: Theme; trades: Trade[]; onSave:
   const isFiltering = !!(fSymbol || fFrom || fTo);
   const buyTotal = filtered.filter(t => t.side === 'buy').reduce((acc, t) => acc + t.quantity * t.price, 0);
   const sellTotal = filtered.filter(t => t.side === 'sell').reduce((acc, t) => acc + t.quantity * t.price, 0);
-  const clearFilter = () => { setFSymbol(''); setFFrom(''); setFTo(''); };
+  const clearFilter = () => { setFSymbol(''); setFFrom(''); setFTo(''); setDatePreset(''); };
 
   const del = (t: Trade) => Alert.alert('刪除交易', `確定刪除 ${t.symbol}？`, [
     { text: '取消', style: 'cancel' },
@@ -372,17 +383,38 @@ function TradesTab({ th, trades, onSave }: { th: Theme; trades: Trade[]; onSave:
       {/* 篩選列 */}
       {showFilter && (
         <View style={{ backgroundColor: th.card, marginHorizontal: 16, marginBottom: 8, borderRadius: 12, padding: 14, elevation: 2, borderWidth: 1, borderColor: th.border }}>
+          {/* 股號輸入 */}
           <View style={s.fRow}>
             <View style={{ flex: 1 }}>
               <Text style={[s.fieldL, { color: th.sub }]}>股號 / 名稱</Text>
               <TextInput style={[s.input, { backgroundColor: th.inputBg, borderColor: th.border, color: th.text }]} value={fSymbol} onChangeText={setFSymbol} placeholder="2330 或 台積電" placeholderTextColor={th.sub} autoCapitalize="characters" />
             </View>
           </View>
-          <View style={s.fRow}>
-            <DatePickerField th={th} label="起始日" value={fFrom} onChange={setFFrom} placeholder="選擇起始日" />
-            <View style={{ width: 10 }} />
-            <DatePickerField th={th} label="結束日" value={fTo} onChange={setFTo} placeholder="選擇結束日" />
+          {/* 快速日期區間選擇 */}
+          <Text style={[s.fieldL, { color: th.sub, marginBottom: 8 }]}>選擇區間</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+            {DATE_PRESETS.map(p => (
+              <TouchableOpacity
+                key={p.label}
+                style={[s.presetBtn, { backgroundColor: th.border }, datePreset === p.label && { backgroundColor: th.tabActive }]}
+                onPress={() => { setDatePreset(p.label); p.apply(); }}
+              >
+                <Text style={[s.presetBtnT, { color: datePreset === p.label ? '#fff' : th.text }]}>{p.label}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
+          {/* 自訂區間日期選擇器（只在選擇區間時顯示） */}
+          {datePreset === '選擇區間' && (
+            <View style={s.fRow}>
+              <DatePickerField th={th} label="起始日" value={fFrom} onChange={setFFrom} placeholder="選擇起始日" />
+              <View style={{ width: 10 }} />
+              <DatePickerField th={th} label="結束日" value={fTo} onChange={setFTo} placeholder="選擇結束日" />
+            </View>
+          )}
+          {/* 已選區間顯示 */}
+          {(fFrom || fTo) && datePreset !== '選擇區間' && (
+            <Text style={[s.sub, { color: th.sub, marginBottom: 6 }]}>{fFrom} ～ {fTo}</Text>
+          )}
           {isFiltering && (
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
               <Text style={[s.sub, { color: th.sub }]}>共 {filtered.length} 筆</Text>
@@ -981,4 +1013,6 @@ const s = StyleSheet.create({
   importBtn: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, alignSelf: 'flex-end' },
   importBtnT: { fontWeight: '600', fontSize: 14 },
   orderBtn: { width: 26, height: 26, borderRadius: 6, justifyContent: 'center', alignItems: 'center' },
+  presetBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
+  presetBtnT: { fontSize: 13, fontWeight: '500' },
 });
