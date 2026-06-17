@@ -389,48 +389,34 @@ function TradesTab({ th, trades, onSave }: { th: Theme; trades: Trade[]; onSave:
     { text: '刪除', style: 'destructive', onPress: () => onSave(trades.filter(x => x.id !== t.id)) },
   ]);
 
-  const listHeader = (
-    <View>
-      {/* 工具列 */}
-      <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingVertical: 10, paddingHorizontal: 16, gap: 8 }}>
-        <TouchableOpacity style={[s.importBtn, { backgroundColor: th.card, borderColor: th.border }, isFiltering && { borderColor: th.tabActive }]} onPress={openFilter}>
-          <Text style={[s.importBtnT, { color: th.tabActive }]}>🔎 查詢{isFiltering ? ' ●' : ''}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[s.importBtn, { backgroundColor: th.card, borderColor: th.border }]} onPress={() => setImportModal(true)}>
-          <Text style={[s.importBtnT, { color: th.tabActive }]}>📥 批次匯入</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* 篩選小計 */}
-      {/* 篩選結果小計 */}
-      {isFiltering && filtered.length > 0 && (
-        <View style={{ marginHorizontal: 16, marginBottom: 4 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-            <Text style={[s.sub, { color: th.sub }]}>共 {filtered.length} 筆{fFrom ? `　${fFrom} ～ ${fTo || '今天'}` : ''}</Text>
-            <TouchableOpacity onPress={clearFilter}>
-              <Text style={{ color: '#ef4444', fontSize: 13, fontWeight: '600' }}>清除篩選</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
-            <View style={[s.card, { flex: 1, paddingVertical: 10, backgroundColor: th.card }]}>
-              <Text style={[s.sub, { textAlign: 'center', color: th.sub }]}>買入金額</Text>
-              <Text style={{ color: '#16a34a', fontWeight: '700', fontSize: 14, textAlign: 'center', marginTop: 2 }}>{buyTotal > 0 ? fmt(buyTotal) : '---'}</Text>
-            </View>
-            <View style={[s.card, { flex: 1, paddingVertical: 10, backgroundColor: th.card }]}>
-              <Text style={[s.sub, { textAlign: 'center', color: th.sub }]}>賣出金額</Text>
-              <Text style={{ color: '#dc2626', fontWeight: '700', fontSize: 14, textAlign: 'center', marginTop: 2 }}>{sellTotal > 0 ? fmt(sellTotal) : '---'}</Text>
-            </View>
-          </View>
-        </View>
-      )}
-    </View>
-  );
+  const [fabOpen, setFabOpen] = useState(false);
 
   return (
     <View style={{ flex: 1 }}>
       <FlatList data={filtered} keyExtractor={i => i.id}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 80 }}
-        ListHeaderComponent={listHeader}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
+        ListHeaderComponent={
+          isFiltering && filtered.length > 0 ? (
+            <View style={{ marginBottom: 4, paddingTop: 8 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <Text style={[s.sub, { color: th.sub }]}>共 {filtered.length} 筆{fFrom ? `　${fFrom} ～ ${fTo || '今天'}` : ''}</Text>
+                <TouchableOpacity onPress={clearFilter}>
+                  <Text style={{ color: '#ef4444', fontSize: 13, fontWeight: '600' }}>清除篩選</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+                <View style={[s.card, { flex: 1, paddingVertical: 10, backgroundColor: th.card }]}>
+                  <Text style={[s.sub, { textAlign: 'center', color: th.sub }]}>買入金額</Text>
+                  <Text style={{ color: '#16a34a', fontWeight: '700', fontSize: 14, textAlign: 'center', marginTop: 2 }}>{buyTotal > 0 ? fmt(buyTotal) : '---'}</Text>
+                </View>
+                <View style={[s.card, { flex: 1, paddingVertical: 10, backgroundColor: th.card }]}>
+                  <Text style={[s.sub, { textAlign: 'center', color: th.sub }]}>賣出金額</Text>
+                  <Text style={{ color: '#dc2626', fontWeight: '700', fontSize: 14, textAlign: 'center', marginTop: 2 }}>{sellTotal > 0 ? fmt(sellTotal) : '---'}</Text>
+                </View>
+              </View>
+            </View>
+          ) : null
+        }
         ListEmptyComponent={
           isFiltering
             ? <View style={{ alignItems: 'center', paddingVertical: 50, gap: 14 }}>
@@ -460,9 +446,40 @@ function TradesTab({ th, trades, onSave }: { th: Theme; trades: Trade[]; onSave:
             </View>
           </TouchableOpacity>
         )} />
-      <TouchableOpacity style={s.fab} onPress={() => { setEditing(null); setModal(true); }}>
-        <Text style={s.fabT}>+</Text>
-      </TouchableOpacity>
+
+      {/* FAB 展開選單遮罩 */}
+      {fabOpen && (
+        <TouchableOpacity style={s.filterOverlay} activeOpacity={1} onPress={() => setFabOpen(false)} />
+      )}
+
+      {/* FAB Speed Dial */}
+      <View style={s.fabGroup}>
+        {fabOpen && (
+          <>
+            <View style={s.fabItem}>
+              <Text style={[s.fabLabel, { backgroundColor: th.card, color: th.text }]}>新增交易</Text>
+              <TouchableOpacity style={[s.fabSmall, { backgroundColor: '#2563eb' }]} onPress={() => { setFabOpen(false); setEditing(null); setModal(true); }}>
+                <Text style={s.fabSmallT}>✏️</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={s.fabItem}>
+              <Text style={[s.fabLabel, { backgroundColor: th.card, color: th.text }]}>查詢{isFiltering ? ' ●' : ''}</Text>
+              <TouchableOpacity style={[s.fabSmall, { backgroundColor: '#0891b2' }]} onPress={() => { setFabOpen(false); openFilter(); }}>
+                <Text style={s.fabSmallT}>🔎</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={s.fabItem}>
+              <Text style={[s.fabLabel, { backgroundColor: th.card, color: th.text }]}>批次匯入</Text>
+              <TouchableOpacity style={[s.fabSmall, { backgroundColor: '#7c3aed' }]} onPress={() => { setFabOpen(false); setImportModal(true); }}>
+                <Text style={s.fabSmallT}>📥</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+        <TouchableOpacity style={[s.fab, fabOpen && { backgroundColor: '#475569' }]} onPress={() => setFabOpen(v => !v)}>
+          <Text style={[s.fabT, { transform: [{ rotate: fabOpen ? '45deg' : '0deg' }] }]}>+</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* 查詢條件浮動視窗 */}
       <Modal visible={filterModal} transparent animationType="fade" onRequestClose={cancelFilter}>
@@ -1073,7 +1090,12 @@ const s = StyleSheet.create({
   orderBtn: { width: 26, height: 26, borderRadius: 6, justifyContent: 'center', alignItems: 'center' },
   presetBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
   presetBtnT: { fontSize: 13, fontWeight: '500' },
-  filterOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  filterOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)' },
+  fabGroup: { position: 'absolute', right: 20, bottom: 20, alignItems: 'flex-end', gap: 12 },
+  fabItem: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  fabLabel: { fontSize: 13, fontWeight: '600', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, elevation: 3 },
+  fabSmall: { width: 46, height: 46, borderRadius: 23, justifyContent: 'center', alignItems: 'center', elevation: 5 },
+  fabSmallT: { fontSize: 20 },
   filterDialog: { width: '88%', borderRadius: 16, padding: 20, elevation: 10 },
   filterActBtn: { paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
   filterActBtnT: { fontSize: 16, fontWeight: '600' },
