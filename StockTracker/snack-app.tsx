@@ -333,24 +333,46 @@ function TradesTab({ th, trades, onSave }: { th: Theme; trades: Trade[]; onSave:
   const [modal, setModal] = useState(false);
   const [importModal, setImportModal] = useState(false);
   const [editing, setEditing] = useState<Trade | null>(null);
-  const [showFilter, setShowFilter] = useState(false);
+  const [filterModal, setFilterModal] = useState(false);
+
+  // 已套用的篩選條件
   const [fSymbol, setFSymbol] = useState('');
   const [fFrom, setFFrom] = useState('');
   const [fTo, setFTo] = useState('');
-  const [datePreset, setDatePreset] = useState<string>('');
+
+  // Modal 內暫存的條件（按確定才套用）
+  const [draftSymbol, setDraftSymbol] = useState('');
+  const [draftFrom, setDraftFrom] = useState('');
+  const [draftTo, setDraftTo] = useState('');
+  const [draftPreset, setDraftPreset] = useState('');
 
   const toDateStr = (d: Date) => d.toISOString().split('T')[0];
   const DATE_PRESETS = [
-    { label: '當日', apply: () => { const t = toDateStr(new Date()); setFFrom(t); setFTo(t); } },
-    { label: '前日', apply: () => { const d = new Date(); d.setDate(d.getDate() - 1); const t = toDateStr(d); setFFrom(t); setFTo(t); } },
-    { label: '三天', apply: () => { const d = new Date(); d.setDate(d.getDate() - 2); setFFrom(toDateStr(d)); setFTo(toDateStr(new Date())); } },
-    { label: '一周', apply: () => { const d = new Date(); d.setDate(d.getDate() - 6); setFFrom(toDateStr(d)); setFTo(toDateStr(new Date())); } },
-    { label: '一個月', apply: () => { const d = new Date(); d.setMonth(d.getMonth() - 1); setFFrom(toDateStr(d)); setFTo(toDateStr(new Date())); } },
-    { label: '選擇區間', apply: () => { setFFrom(''); setFTo(''); } },
+    { label: '當日', from: () => { const t = toDateStr(new Date()); return { from: t, to: t }; } },
+    { label: '前日', from: () => { const d = new Date(); d.setDate(d.getDate() - 1); const t = toDateStr(d); return { from: t, to: t }; } },
+    { label: '三天', from: () => { const d = new Date(); d.setDate(d.getDate() - 2); return { from: toDateStr(d), to: toDateStr(new Date()) }; } },
+    { label: '一周', from: () => { const d = new Date(); d.setDate(d.getDate() - 6); return { from: toDateStr(d), to: toDateStr(new Date()) }; } },
+    { label: '一個月', from: () => { const d = new Date(); d.setMonth(d.getMonth() - 1); return { from: toDateStr(d), to: toDateStr(new Date()) }; } },
+    { label: '選擇區間', from: () => ({ from: '', to: '' }) },
   ];
 
-  const sorted = [...trades].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const openFilter = () => {
+    setDraftSymbol(fSymbol);
+    setDraftFrom(fFrom);
+    setDraftTo(fTo);
+    setDraftPreset('');
+    setFilterModal(true);
+  };
+  const applyFilter = () => {
+    setFSymbol(draftSymbol);
+    setFFrom(draftFrom);
+    setFTo(draftTo);
+    setFilterModal(false);
+  };
+  const cancelFilter = () => setFilterModal(false);
+  const clearFilter = () => { setFSymbol(''); setFFrom(''); setFTo(''); };
 
+  const sorted = [...trades].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const filtered = sorted.filter(t => {
     if (fSymbol && !t.symbol.includes(fSymbol.toUpperCase()) && !t.name.includes(fSymbol)) return false;
     if (fFrom && t.date < fFrom) return false;
@@ -361,7 +383,6 @@ function TradesTab({ th, trades, onSave }: { th: Theme; trades: Trade[]; onSave:
   const isFiltering = !!(fSymbol || fFrom || fTo);
   const buyTotal = filtered.filter(t => t.side === 'buy').reduce((acc, t) => acc + t.quantity * t.price, 0);
   const sellTotal = filtered.filter(t => t.side === 'sell').reduce((acc, t) => acc + t.quantity * t.price, 0);
-  const clearFilter = () => { setFSymbol(''); setFFrom(''); setFTo(''); setDatePreset(''); };
 
   const del = (t: Trade) => Alert.alert('刪除交易', `確定刪除 ${t.symbol}？`, [
     { text: '取消', style: 'cancel' },
@@ -372,7 +393,7 @@ function TradesTab({ th, trades, onSave }: { th: Theme; trades: Trade[]; onSave:
     <View>
       {/* 工具列 */}
       <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingVertical: 10, paddingHorizontal: 16, gap: 8 }}>
-        <TouchableOpacity style={[s.importBtn, { backgroundColor: th.card, borderColor: th.border }, showFilter && { backgroundColor: '#dbeafe', borderColor: '#3b82f6' }]} onPress={() => setShowFilter(v => !v)}>
+        <TouchableOpacity style={[s.importBtn, { backgroundColor: th.card, borderColor: th.border }, isFiltering && { borderColor: th.tabActive }]} onPress={openFilter}>
           <Text style={[s.importBtnT, { color: th.tabActive }]}>🔎 查詢{isFiltering ? ' ●' : ''}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[s.importBtn, { backgroundColor: th.card, borderColor: th.border }]} onPress={() => setImportModal(true)}>
@@ -380,66 +401,25 @@ function TradesTab({ th, trades, onSave }: { th: Theme; trades: Trade[]; onSave:
         </TouchableOpacity>
       </View>
 
-      {/* 篩選列 */}
-      {showFilter && (
-        <View style={{ backgroundColor: th.card, marginHorizontal: 16, marginBottom: 8, borderRadius: 12, padding: 14, elevation: 2, borderWidth: 1, borderColor: th.border }}>
-          {/* 股號輸入 */}
-          <View style={s.fRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={[s.fieldL, { color: th.sub }]}>股號 / 名稱</Text>
-              <TextInput style={[s.input, { backgroundColor: th.inputBg, borderColor: th.border, color: th.text }]} value={fSymbol} onChangeText={setFSymbol} placeholder="2330 或 台積電" placeholderTextColor={th.sub} autoCapitalize="characters" />
-            </View>
-          </View>
-          {/* 快速日期區間選擇 */}
-          <Text style={[s.fieldL, { color: th.sub, marginBottom: 8 }]}>選擇區間</Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
-            {DATE_PRESETS.map(p => (
-              <TouchableOpacity
-                key={p.label}
-                style={[s.presetBtn, { backgroundColor: th.border }, datePreset === p.label && { backgroundColor: th.tabActive }]}
-                onPress={() => { setDatePreset(p.label); p.apply(); }}
-              >
-                <Text style={[s.presetBtnT, { color: datePreset === p.label ? '#fff' : th.text }]}>{p.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          {/* 自訂區間日期選擇器（只在選擇區間時顯示） */}
-          {datePreset === '選擇區間' && (
-            <View style={s.fRow}>
-              <DatePickerField th={th} label="起始日" value={fFrom} onChange={setFFrom} placeholder="選擇起始日" />
-              <View style={{ width: 10 }} />
-              <DatePickerField th={th} label="結束日" value={fTo} onChange={setFTo} placeholder="選擇結束日" />
-            </View>
-          )}
-          {/* 已選區間顯示 */}
-          {(fFrom || fTo) && datePreset !== '選擇區間' && (
-            <Text style={[s.sub, { color: th.sub, marginBottom: 6 }]}>{fFrom} ～ {fTo}</Text>
-          )}
-          {isFiltering && (
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-              <Text style={[s.sub, { color: th.sub }]}>共 {filtered.length} 筆</Text>
-              <TouchableOpacity onPress={clearFilter}>
-                <Text style={{ color: '#ef4444', fontSize: 13, fontWeight: '600' }}>清除篩選</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-      )}
-
       {/* 篩選小計 */}
+      {/* 篩選結果小計 */}
       {isFiltering && filtered.length > 0 && (
-        <View style={{ flexDirection: 'row', marginHorizontal: 16, marginBottom: 8, gap: 8 }}>
-          <View style={[s.card, { flex: 1, paddingVertical: 10, backgroundColor: th.card }]}>
-            <Text style={[s.sub, { textAlign: 'center', color: th.sub }]}>買入金額</Text>
-            <Text style={{ color: '#16a34a', fontWeight: '700', fontSize: 14, textAlign: 'center', marginTop: 2 }}>
-              {buyTotal > 0 ? fmt(buyTotal) : '---'}
-            </Text>
+        <View style={{ marginHorizontal: 16, marginBottom: 4 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <Text style={[s.sub, { color: th.sub }]}>共 {filtered.length} 筆{fFrom ? `　${fFrom} ～ ${fTo || '今天'}` : ''}</Text>
+            <TouchableOpacity onPress={clearFilter}>
+              <Text style={{ color: '#ef4444', fontSize: 13, fontWeight: '600' }}>清除篩選</Text>
+            </TouchableOpacity>
           </View>
-          <View style={[s.card, { flex: 1, paddingVertical: 10, backgroundColor: th.card }]}>
-            <Text style={[s.sub, { textAlign: 'center', color: th.sub }]}>賣出金額</Text>
-            <Text style={{ color: '#dc2626', fontWeight: '700', fontSize: 14, textAlign: 'center', marginTop: 2 }}>
-              {sellTotal > 0 ? fmt(sellTotal) : '---'}
-            </Text>
+          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+            <View style={[s.card, { flex: 1, paddingVertical: 10, backgroundColor: th.card }]}>
+              <Text style={[s.sub, { textAlign: 'center', color: th.sub }]}>買入金額</Text>
+              <Text style={{ color: '#16a34a', fontWeight: '700', fontSize: 14, textAlign: 'center', marginTop: 2 }}>{buyTotal > 0 ? fmt(buyTotal) : '---'}</Text>
+            </View>
+            <View style={[s.card, { flex: 1, paddingVertical: 10, backgroundColor: th.card }]}>
+              <Text style={[s.sub, { textAlign: 'center', color: th.sub }]}>賣出金額</Text>
+              <Text style={{ color: '#dc2626', fontWeight: '700', fontSize: 14, textAlign: 'center', marginTop: 2 }}>{sellTotal > 0 ? fmt(sellTotal) : '---'}</Text>
+            </View>
           </View>
         </View>
       )}
@@ -474,6 +454,68 @@ function TradesTab({ th, trades, onSave }: { th: Theme; trades: Trade[]; onSave:
       <TouchableOpacity style={s.fab} onPress={() => { setEditing(null); setModal(true); }}>
         <Text style={s.fabT}>+</Text>
       </TouchableOpacity>
+
+      {/* 查詢條件浮動視窗 */}
+      <Modal visible={filterModal} transparent animationType="fade" onRequestClose={cancelFilter}>
+        <TouchableOpacity style={s.filterOverlay} activeOpacity={1} onPress={cancelFilter}>
+          <TouchableOpacity activeOpacity={1} style={[s.filterDialog, { backgroundColor: th.card }]}>
+            <Text style={[s.mTitle, { color: th.text, marginBottom: 16 }]}>查詢條件</Text>
+
+            {/* 股號 */}
+            <Text style={[s.fieldL, { color: th.sub }]}>股號 / 名稱</Text>
+            <TextInput
+              style={[s.input, { backgroundColor: th.inputBg, borderColor: th.border, color: th.text, marginBottom: 16 }]}
+              value={draftSymbol} onChangeText={setDraftSymbol}
+              placeholder="2330 或 台積電" placeholderTextColor={th.sub} autoCapitalize="characters"
+            />
+
+            {/* 日期快選 */}
+            <Text style={[s.fieldL, { color: th.sub }]}>選擇區間</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+              {DATE_PRESETS.map(p => {
+                const active = draftPreset === p.label;
+                return (
+                  <TouchableOpacity
+                    key={p.label}
+                    style={[s.presetBtn, { backgroundColor: th.border }, active && { backgroundColor: th.tabActive }]}
+                    onPress={() => {
+                      setDraftPreset(p.label);
+                      const r = p.from();
+                      setDraftFrom(r.from);
+                      setDraftTo(r.to);
+                    }}
+                  >
+                    <Text style={[s.presetBtnT, { color: active ? '#fff' : th.text }]}>{p.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* 自訂區間日期選擇器 */}
+            {draftPreset === '選擇區間' && (
+              <View style={s.fRow}>
+                <DatePickerField th={th} label="起始日" value={draftFrom} onChange={setDraftFrom} placeholder="選擇起始日" />
+                <View style={{ width: 10 }} />
+                <DatePickerField th={th} label="結束日" value={draftTo} onChange={setDraftTo} placeholder="選擇結束日" />
+              </View>
+            )}
+            {draftPreset && draftPreset !== '選擇區間' && (draftFrom || draftTo) && (
+              <Text style={[s.sub, { color: th.sub, marginBottom: 12 }]}>{draftFrom} ～ {draftTo}</Text>
+            )}
+
+            {/* 取消 / 確定 */}
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
+              <TouchableOpacity style={[s.filterActBtn, { backgroundColor: th.border, flex: 1 }]} onPress={cancelFilter}>
+                <Text style={[s.filterActBtnT, { color: th.text }]}>取消</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[s.filterActBtn, { backgroundColor: th.tabActive, flex: 1 }]} onPress={applyFilter}>
+                <Text style={[s.filterActBtnT, { color: '#fff' }]}>確定</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
       <TradeForm th={th} visible={modal} trade={editing} onClose={() => setModal(false)}
         onSave={(t: Trade) => { onSave(editing ? trades.map(x => x.id === t.id ? t : x) : [...trades, t]); setModal(false); }} />
       <ImportModal th={th} visible={importModal} onClose={() => setImportModal(false)}
@@ -1015,4 +1057,8 @@ const s = StyleSheet.create({
   orderBtn: { width: 26, height: 26, borderRadius: 6, justifyContent: 'center', alignItems: 'center' },
   presetBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
   presetBtnT: { fontSize: 13, fontWeight: '500' },
+  filterOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  filterDialog: { width: '88%', borderRadius: 16, padding: 20, elevation: 10 },
+  filterActBtn: { paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
+  filterActBtnT: { fontSize: 16, fontWeight: '600' },
 });
