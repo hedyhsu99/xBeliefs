@@ -6,8 +6,6 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import DraggableFlatList, { ScaleDecorator, RenderItemParams } from 'react-native-draggable-flatlist';
 
 // ── 主題定義 ──────────────────────────────────────────
 const lightTheme = {
@@ -149,11 +147,9 @@ type Tab = 'portfolio' | 'trades' | 'dividends' | 'analytics' | 'quote';
 
 export default function App() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <AppInner />
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <SafeAreaProvider>
+      <AppInner />
+    </SafeAreaProvider>
   );
 }
 
@@ -268,63 +264,65 @@ function PortfolioTab({ th, holding, totalCost, totalMV, totalUpnl, totalRpnl, t
     return ai - bi;
   });
 
-  const header = (
-    <View>
-      <View style={[s.summaryCard, { backgroundColor: th.summaryBg }]}>
-        <Text style={s.summaryTitle}>投資組合總覽</Text>
-        <Row label="市值" value={<Text style={s.bigWhite}>{fmt(totalMV)}</Text>} th={th} />
-        <Row label="成本" value={<Text style={s.bigWhite}>{fmt(totalCost)}</Text>} th={th} />
-        <View style={s.hr} />
-        <Row label="未實現損益" value={<PnL value={totalUpnl} pct={totalCost > 0 ? (totalUpnl / totalCost) * 100 : 0} size={15} />} th={th} />
-        <Row label="已實現損益" value={<PnL value={totalRpnl} size={15} />} th={th} />
-        <Row label="股利收入" value={<PnL value={totalDiv} size={15} />} th={th} />
-        <Row label="總損益" value={<PnL value={totalUpnl + totalRpnl + totalDiv} size={15} />} th={th} />
-      </View>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 4 }}>
-        <Text style={[s.sec, { color: th.text }]}>持倉明細</Text>
-        {holding.length > 1 && <Text style={[s.sub, { color: th.sub }]}>長按卡片可拖曳排序</Text>}
-      </View>
-      {holding.length === 0 && <Empty text="尚無持倉，請至「交易」頁面新增記錄" th={th} />}
-    </View>
-  );
-
-  const renderItem = ({ item: p, drag, isActive }: RenderItemParams<Position>) => (
-    <ScaleDecorator>
-      <TouchableOpacity
-        style={[s.card, { backgroundColor: th.card }, isActive && { opacity: 0.85, elevation: 8, shadowOpacity: 0.15 }]}
-        onLongPress={drag}
-        delayLongPress={200}
-        activeOpacity={1}
-      >
-        <View style={s.row}>
-          <View style={{ flex: 1 }}>
-            <Text style={[s.symbol, { color: th.text }]}>{p.symbol}</Text>
-            <Text style={[s.sub, { color: th.sub }]}>{p.name}</Text>
-          </View>
-          <View style={{ alignItems: 'flex-end' }}>
-            {loading ? <ActivityIndicator size="small" /> : <Text style={[s.price, { color: th.text }]}>{p.currentPrice > 0 ? `$${p.currentPrice}` : '---'}</Text>}
-            <Text style={[s.sub, { color: th.sub }]}>{p.quantity} 股</Text>
-          </View>
-          {holding.length > 1 && <Text style={{ color: '#cbd5e1', fontSize: 18, marginLeft: 10 }}>⠿</Text>}
-        </View>
-        <View style={[s.hr2, { backgroundColor: th.border }]} />
-        <Row label="市值" value={<Text style={[s.val, { color: th.text }]}>{fmt(p.marketValue)}</Text>} th={th} />
-        <Row label="均成本" value={<Text style={[s.val, { color: th.text }]}>{fmt(p.averageCost)}</Text>} th={th} />
-        <Row label="未實現損益" value={<PnL value={p.unrealizedPnL} pct={p.unrealizedPnLPercent} />} th={th} />
-        {p.realizedPnL !== 0 && <Row label="已實現損益" value={<PnL value={p.realizedPnL} />} th={th} />}
-      </TouchableOpacity>
-    </ScaleDecorator>
-  );
+  const move = (index: number, dir: -1 | 1) => {
+    const next = [...ordered];
+    const target = index + dir;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target], next[index]];
+    onReorder(next.map((p: Position) => p.symbol));
+  };
 
   return (
-    <DraggableFlatList
+    <FlatList
       data={ordered}
       keyExtractor={(p: Position) => p.symbol}
-      renderItem={renderItem}
-      onDragEnd={({ data }: { data: Position[] }) => onReorder(data.map((p: Position) => p.symbol))}
-      ListHeaderComponent={header}
       contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
       refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} />}
+      ListHeaderComponent={
+        <View>
+          <View style={[s.summaryCard, { backgroundColor: th.summaryBg }]}>
+            <Text style={s.summaryTitle}>投資組合總覽</Text>
+            <Row label="市值" value={<Text style={s.bigWhite}>{fmt(totalMV)}</Text>} th={th} />
+            <Row label="成本" value={<Text style={s.bigWhite}>{fmt(totalCost)}</Text>} th={th} />
+            <View style={s.hr} />
+            <Row label="未實現損益" value={<PnL value={totalUpnl} pct={totalCost > 0 ? (totalUpnl / totalCost) * 100 : 0} size={15} />} th={th} />
+            <Row label="已實現損益" value={<PnL value={totalRpnl} size={15} />} th={th} />
+            <Row label="股利收入" value={<PnL value={totalDiv} size={15} />} th={th} />
+            <Row label="總損益" value={<PnL value={totalUpnl + totalRpnl + totalDiv} size={15} />} th={th} />
+          </View>
+          <Text style={[s.sec, { color: th.text, paddingHorizontal: 4 }]}>持倉明細</Text>
+          {holding.length === 0 && <Empty text="尚無持倉，請至「交易」頁面新增記錄" th={th} />}
+        </View>
+      }
+      renderItem={({ item: p, index }) => (
+        <View style={[s.card, { backgroundColor: th.card }]}>
+          <View style={s.row}>
+            <View style={{ flex: 1 }}>
+              <Text style={[s.symbol, { color: th.text }]}>{p.symbol}</Text>
+              <Text style={[s.sub, { color: th.sub }]}>{p.name}</Text>
+            </View>
+            <View style={{ alignItems: 'flex-end' }}>
+              {loading ? <ActivityIndicator size="small" /> : <Text style={[s.price, { color: th.text }]}>{p.currentPrice > 0 ? `$${p.currentPrice}` : '---'}</Text>}
+              <Text style={[s.sub, { color: th.sub }]}>{p.quantity} 股</Text>
+            </View>
+            {holding.length > 1 && (
+              <View style={{ marginLeft: 10, gap: 4 }}>
+                <TouchableOpacity onPress={() => move(index!, -1)} style={[s.orderBtn, { backgroundColor: th.border }]}>
+                  <Text style={{ fontSize: 12, color: th.text }}>▲</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => move(index!, 1)} style={[s.orderBtn, { backgroundColor: th.border }]}>
+                  <Text style={{ fontSize: 12, color: th.text }}>▼</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+          <View style={[s.hr2, { backgroundColor: th.border }]} />
+          <Row label="市值" value={<Text style={[s.val, { color: th.text }]}>{fmt(p.marketValue)}</Text>} th={th} />
+          <Row label="均成本" value={<Text style={[s.val, { color: th.text }]}>{fmt(p.averageCost)}</Text>} th={th} />
+          <Row label="未實現損益" value={<PnL value={p.unrealizedPnL} pct={p.unrealizedPnLPercent} />} th={th} />
+          {p.realizedPnL !== 0 && <Row label="已實現損益" value={<PnL value={p.realizedPnL} />} th={th} />}
+        </View>
+      )}
     />
   );
 }
@@ -961,4 +959,5 @@ const s = StyleSheet.create({
   searchBtn: { borderRadius: 10, paddingHorizontal: 18, justifyContent: 'center', minWidth: 70, alignItems: 'center', paddingVertical: 10 },
   importBtn: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, alignSelf: 'flex-end' },
   importBtnT: { fontWeight: '600', fontSize: 14 },
+  orderBtn: { width: 26, height: 26, borderRadius: 6, justifyContent: 'center', alignItems: 'center' },
 });
