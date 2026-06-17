@@ -144,7 +144,7 @@ function PnL({ value, pct, size = 14 }: { value: number; pct?: number; size?: nu
 }
 
 // ── 主 App ────────────────────────────────────────────
-type Tab = 'portfolio' | 'trades' | 'dividends' | 'analytics' | 'quote';
+type Tab = 'portfolio' | 'trades' | 'dividends' | 'analytics' | 'quote' | 'settings';
 
 export default function App() {
   return (
@@ -169,16 +169,10 @@ function AppInner() {
   const resolvedScheme = themeMode === 'system' ? (systemColorScheme ?? 'light') : themeMode;
   const th: Theme = resolvedScheme === 'dark' ? darkTheme : lightTheme;
 
-  // 主題循環切換：system → light → dark → system
-  const cycleTheme = () => {
-    setThemeMode(prev => {
-      const next: ThemeMode = prev === 'system' ? 'light' : prev === 'light' ? 'dark' : 'system';
-      AsyncStorage.setItem('themeMode', next);
-      return next;
-    });
+  const setTheme = (mode: ThemeMode) => {
+    setThemeMode(mode);
+    AsyncStorage.setItem('themeMode', mode);
   };
-
-  const themeIcon = themeMode === 'system' ? '🌐' : themeMode === 'light' ? '☀️' : '🌙';
 
   const saveHoldingOrder = (order: string[]) => {
     setHoldingOrder(order);
@@ -218,34 +212,28 @@ function AppInner() {
   const totalDiv = dividends.reduce((acc, d) => acc + d.totalAmount, 0);
 
   const TABS: { key: Tab; icon: string; label: string }[] = [
-    { key: 'portfolio', icon: '📊', label: '組合' },
+    { key: 'portfolio', icon: '📊', label: '總覽' },
     { key: 'trades', icon: '📋', label: '交易' },
     { key: 'dividends', icon: '💰', label: '配息' },
     { key: 'analytics', icon: '📈', label: '分析' },
     { key: 'quote', icon: '🔍', label: '報價' },
+    { key: 'settings', icon: '⚙️', label: '設定' },
   ];
 
   return (
     <View style={[s.root, { paddingTop: insets.top, backgroundColor: th.bg }]}>
-      {/* App Header */}
-      <View style={[s.appHeader, { backgroundColor: th.headerBg, borderBottomColor: th.headerBorder }]}>
-        <Text style={[s.appHeaderTitle, { color: th.text }]}>StockTracker</Text>
-        <TouchableOpacity style={s.themeBtn} onPress={cycleTheme}>
-          <Text style={{ fontSize: 20 }}>{themeIcon}</Text>
-        </TouchableOpacity>
-      </View>
-
       <View style={s.content}>
         {tab === 'portfolio' && <PortfolioTab th={th} holding={holding} totalCost={totalCost} totalMV={totalMV} totalUpnl={totalUpnl} totalRpnl={totalRpnl} totalDiv={totalDiv} loading={loading} onRefresh={refreshPrices} holdingOrder={holdingOrder} onReorder={saveHoldingOrder} />}
         {tab === 'trades' && <TradesTab th={th} trades={trades} onSave={saveTrades} />}
         {tab === 'dividends' && <DividendsTab th={th} dividends={dividends} onSave={saveDividends} />}
         {tab === 'analytics' && <AnalyticsTab th={th} positions={positions} holding={holding} dividends={dividends} totalCost={totalCost} totalMV={totalMV} totalUpnl={totalUpnl} totalRpnl={totalRpnl} totalDiv={totalDiv} trades={trades} />}
         {tab === 'quote' && <QuoteTab th={th} prices={prices} trades={trades} onRefresh={refreshPrices} loading={loading} />}
+        {tab === 'settings' && <SettingsTab th={th} themeMode={themeMode} onSetTheme={setTheme} trades={trades} onSaveTrades={saveTrades} dividends={dividends} onSaveDividends={saveDividends} />}
       </View>
       <View style={[s.tabBar, { backgroundColor: th.tabBg, borderTopColor: th.border, paddingBottom: insets.bottom || 8 }]}>
         {TABS.map(t => (
           <TouchableOpacity key={t.key} style={s.tabBtn} onPress={() => setTab(t.key)}>
-            <Text style={{ fontSize: 22 }}>{t.icon}</Text>
+            <Text style={{ fontSize: 20 }}>{t.icon}</Text>
             <Text style={[s.tabLabel, { color: tab === t.key ? th.tabActive : th.tabInactive }, tab === t.key && s.tabActiveStyle]}>{t.label}</Text>
           </TouchableOpacity>
         ))}
@@ -982,6 +970,61 @@ function QuoteTab({ th, prices, trades, onRefresh, loading }: any) {
   );
 }
 
+// ── 設定 ──────────────────────────────────────────────
+function SettingsTab({ th, themeMode, onSetTheme, trades, onSaveTrades, dividends, onSaveDividends }: any) {
+  const [importModal, setImportModal] = useState(false);
+
+  const THEMES: { mode: ThemeMode; icon: string; label: string }[] = [
+    { mode: 'system', icon: '🌐', label: '系統預設' },
+    { mode: 'light', icon: '☀️', label: '淺色模式' },
+    { mode: 'dark', icon: '🌙', label: '深色模式' },
+  ];
+
+  const clearAll = () => Alert.alert('清除所有資料', '確定要刪除全部交易和配息記錄嗎？此動作無法復原。', [
+    { text: '取消', style: 'cancel' },
+    { text: '確定清除', style: 'destructive', onPress: () => { onSaveTrades([]); onSaveDividends([]); } },
+  ]);
+
+  return (
+    <ScrollView style={[s.scroll, { backgroundColor: th.bg }]} contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+      {/* 外觀模式 */}
+      <Text style={[s.sec, { color: th.text }]}>外觀模式</Text>
+      <View style={[s.card, { backgroundColor: th.card }]}>
+        {THEMES.map((item, i) => (
+          <TouchableOpacity
+            key={item.mode}
+            style={[{ flexDirection: 'row', alignItems: 'center', paddingVertical: 14 }, i > 0 && { borderTopWidth: 1, borderTopColor: th.border }]}
+            onPress={() => onSetTheme(item.mode)}
+          >
+            <Text style={{ fontSize: 22, marginRight: 14 }}>{item.icon}</Text>
+            <Text style={[{ flex: 1, fontSize: 16, color: th.text }]}>{item.label}</Text>
+            {themeMode === item.mode && <Text style={{ color: th.tabActive, fontSize: 20 }}>✓</Text>}
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* 資料管理 */}
+      <Text style={[s.sec, { color: th.text }]}>資料管理</Text>
+      <View style={[s.card, { backgroundColor: th.card }]}>
+        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 14 }} onPress={() => setImportModal(true)}>
+          <Text style={{ fontSize: 22, marginRight: 14 }}>📥</Text>
+          <Text style={[{ flex: 1, fontSize: 16, color: th.text }]}>批次匯入交易</Text>
+          <Text style={{ color: th.sub, fontSize: 16 }}>›</Text>
+        </TouchableOpacity>
+        <View style={{ height: 1, backgroundColor: th.border }} />
+        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 14 }} onPress={clearAll}>
+          <Text style={{ fontSize: 22, marginRight: 14 }}>🗑️</Text>
+          <Text style={[{ flex: 1, fontSize: 16, color: '#ef4444' }]}>清除所有資料</Text>
+          <Text style={{ color: th.sub, fontSize: 16 }}>›</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ImportModal th={th} visible={importModal} onClose={() => setImportModal(false)}
+        onImport={(newTrades: Trade[]) => { onSaveTrades([...trades, ...newTrades]); setImportModal(false); }} />
+    </ScrollView>
+  );
+}
+
 // ── 共用元件 ──────────────────────────────────────────
 function Row({ label, value, th }: { label: string; value: React.ReactNode; th: Theme }) {
   return (
@@ -1041,9 +1084,6 @@ const s = StyleSheet.create({
   root: { flex: 1 },
   content: { flex: 1 },
   scroll: { flex: 1 },
-  appHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1 },
-  appHeaderTitle: { fontSize: 20, fontWeight: '700' },
-  themeBtn: { padding: 6 },
   tabBar: { flexDirection: 'row', borderTopWidth: 1 },
   tabBtn: { flex: 1, alignItems: 'center', paddingTop: 8 },
   tabLabel: { fontSize: 11, marginTop: 2 },
