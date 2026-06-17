@@ -372,11 +372,13 @@ function TradesTab({ th, trades, onSave }: { th: Theme; trades: Trade[]; onSave:
   const cancelFilter = () => setFilterModal(false);
   const clearFilter = () => { setFSymbol(''); setFFrom(''); setFTo(''); };
 
-  const sorted = [...trades].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const normDate = (s: string) => s.replace(/\//g, '-');
+  const sorted = [...trades].sort((a, b) => new Date(normDate(b.date)).getTime() - new Date(normDate(a.date)).getTime());
   const filtered = sorted.filter(t => {
     if (fSymbol && !t.symbol.includes(fSymbol.toUpperCase()) && !t.name.includes(fSymbol)) return false;
-    if (fFrom && t.date < fFrom) return false;
-    if (fTo && t.date > fTo) return false;
+    const d = normDate(t.date);
+    if (fFrom && d < fFrom) return false;
+    if (fTo && d > fTo) return false;
     return true;
   });
 
