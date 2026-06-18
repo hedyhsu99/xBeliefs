@@ -9,16 +9,12 @@
     "expo-status-bar": "~56.0.4",
     "react": "19.2.3",
     "react-native": "0.85.3",
+    "react-native-reanimated": "~4.1.1",
     "react-native-safe-area-context": "^5.8.0"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
     "typescript": "~6.0.3"
-  },
-  "expo": {
-    "install": {
-      "exclude": ["react-native-reanimated", "react-native-gesture-handler"]
-    }
   },
   "scripts": {
     "start": "expo start",
