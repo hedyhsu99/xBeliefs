@@ -15,6 +15,11 @@
     "@types/react": "~19.2.2",
     "typescript": "~6.0.3"
   },
+  "expo": {
+    "install": {
+      "exclude": ["react-native-reanimated", "react-native-gesture-handler"]
+    }
+  },
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
