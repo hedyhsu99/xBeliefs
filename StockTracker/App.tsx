@@ -143,14 +143,42 @@ function PnL({ value, pct, size = 14 }: { value: number; pct?: number; size?: nu
   );
 }
 
+// ── 錯誤邊界 ──────────────────────────────────────────
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { error: Error | null }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#fff' }}>
+          <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'red', marginBottom: 12 }}>App 啟動錯誤</Text>
+          <Text style={{ fontSize: 13, color: '#333', marginBottom: 8 }}>{this.state.error.message}</Text>
+          <Text style={{ fontSize: 10, color: '#666' }}>{this.state.error.stack?.slice(0, 500)}</Text>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // ── 主 App ────────────────────────────────────────────
 type Tab = 'portfolio' | 'trades' | 'dividends' | 'analytics' | 'quote' | 'settings';
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <AppInner />
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <AppInner />
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
 
